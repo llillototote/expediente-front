@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  saylam-from:
+    build:
+      context: .
+      target: production-stage
+      dockerfile: Dockerfile
+    ports:
+      - 9000:80
+    volumes:
+      - '.:/opt/app'
+      - '/var/opt/node_modules'
+    #command: /bin/sh -c "yarn && quasar dev"
