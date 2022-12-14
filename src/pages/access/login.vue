@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
+import { obtenerProvincias } from '../../services/external/nomenclador';
+import { prepareToSelect } from '../../services/util';
 //import loadingAndConfiguring from '../../components/generic/loading/loadingAndConfiguring.vue';
 
 const estadoLogin = ref<string>('');
@@ -8,6 +10,34 @@ const exitCountActive = ref<boolean>(false);
 const exitCountExpired = ref<boolean>(false);
 const exist_user_binding = ref<boolean>(false);
 const exist_sesion = ref<boolean>(false);
+
+interface ProvinciaControl {
+  model: null | string;
+  stringOptions: SelectField[];
+  options: SelectField[];
+}
+
+const select_prov: ProvinciaControl = reactive({
+  model: null,
+  stringOptions: [],
+  options: [],
+});
+
+const filterFnProv = (val: string, update: any) => {
+  if (val === '') {
+    update(() => {
+      select_prov.options = select_prov.stringOptions;
+    });
+    return;
+  }
+
+  update(() => {
+    const needle = val.toLowerCase();
+    select_prov.options = select_prov.stringOptions.filter(
+      (v: any) => v.label.toLowerCase().indexOf(needle) > -1
+    );
+  });
+};
 
 const LOGGE_USER = reactive({
   avatar: '',
@@ -42,6 +72,19 @@ const loadForm = () => true;
 const obtenerUsuarioSiExiste = () => console.log('method');
 const verifyToken = () => console.log('method');
 const logout = () => console.log('method');
+
+onMounted(async () => {
+  let obj_provincias = await obtenerProvincias();
+  console.log(obj_provincias);
+  let prov_prepared = [];
+  if (obj_provincias.status == 200) {
+    let provincias = obj_provincias.data;
+    prov_prepared = await prepareToSelect(provincias, 'name', 'id');
+  }
+
+  select_prov.options = prov_prepared;
+  select_prov.stringOptions = prov_prepared;
+});
 </script>
 <template>
   <q-page class="row items-center justify-evenly">
@@ -134,6 +177,30 @@ const logout = () => console.log('method');
         v-if="!exist_sesion"
       >
         <q-card class="my-card no-shadow">
+          <q-card-section>
+            <q-select
+              filled
+              transition-show="scale"
+              transition-hide="scale"
+              v-model="select_prov.model"
+              use-input
+              input-debounce="0"
+              label="Filtra tu Provincia"
+              hint="tu provincia aqui"
+              :options="select_prov.options"
+              @filter="filterFnProv"
+              behavior="dialog"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No resultados
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </q-card-section>
+
           <q-card-section>
             <q-input
               filled
