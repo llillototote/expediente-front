@@ -1,48 +1,71 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+    <div class="col s12">
+      <table-component
+        :data="seed"
+        option="email"
+        :actions="actions"
+        :hide="['email']"
+      ></table-component>
+    </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import tableComponent from 'components/generic/tablas/table.vue';
 import { onMounted, ref } from 'vue';
-import { register } from 'src/services/external/user';
+import { ACTIONS } from 'src/common/enum/actions';
+import { ButtonAction } from 'src/common/interface/util';
 
-const todos = ref<Todo[]>([
+const seed = ref<any[]>([
   {
-    id: 1,
-    content: 'ct1',
+    name: 'Pepe',
+    email: 'pepe@cc.cu',
+    provincia: 'Artemisa',
   },
   {
-    id: 2,
-    content: 'ct2',
-  },
-  {
-    id: 3,
-    content: 'ct3',
-  },
-  {
-    id: 4,
-    content: 'ct4',
-  },
-  {
-    id: 5,
-    content: 'ct5',
+    name: 'Ale',
+    email: 'ale@cc.cu',
+    provincia: 'La Habana',
   },
 ]);
+
+const actions: ButtonAction[] = [
+  {
+    action: ACTIONS.show,
+    color: 'info',
+    text_color: 'white',
+    icon: 'info',
+  },
+  {
+    action: ACTIONS.delete,
+    color: 'primary',
+    text_color: 'white',
+    icon: 'delete',
+  },
+  {
+    action: ACTIONS.edit,
+    color: 'grey',
+    text_color: 'black',
+    icon: 'edit',
+  },
+];
+
+function eliminar(payload: any) {
+  console.log(payload);
+}
+
+function editar(payload: any) {
+  console.log(payload);
+}
+
 const meta = ref<Meta>({
   totalCount: 1200,
 });
 
 onMounted(async () => {
   console.log('Haciendo un request');
-  await register();
+  //await register();
 });
 </script>

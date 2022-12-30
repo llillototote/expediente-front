@@ -1,7 +1,9 @@
 import { api } from 'src/boot/axios';
+import { ResponseExternal } from 'src/common/interface/util';
+import { ProvinceResponse } from './userDTO';
 
-export async function obtenerProvincias() {
-  const resp = await api.get('/v1/nomenclador/provincia');
-  console.log(resp);
-  return resp;
+
+export async function getAllProvinces(): Promise<ResponseExternal<ProvinceResponse[]>> {
+  return await api.get('/province_controller');
 }
+

@@ -1,15 +1,23 @@
 <script setup lang="ts">
+import { SelectField } from 'src/common/interface/util';
+import { getAllPermision } from 'src/services/external/permision';
+import { login } from 'src/services/external/user';
+import { usePermisionStore } from 'src/stores/permision-store';
+import { useUserStore } from 'src/stores/user-store';
 import { reactive, ref, computed, onMounted } from 'vue';
-import { obtenerProvincias } from '../../services/external/nomenclador';
-import { prepareToSelect } from '../../services/util';
+import { useRouter } from 'vue-router';
 //import loadingAndConfiguring from '../../components/generic/loading/loadingAndConfiguring.vue';
 
-const estadoLogin = ref<string>('');
+const estadoLogin = ref<string>('Intentos de acceso');
 const loading = ref<boolean>(false);
 const exitCountActive = ref<boolean>(false);
 const exitCountExpired = ref<boolean>(false);
 const exist_user_binding = ref<boolean>(false);
 const exist_sesion = ref<boolean>(false);
+
+const userStore = useUserStore();
+const permisionStore = usePermisionStore();
+const router = useRouter();
 
 interface ProvinciaControl {
   model: null | string;
@@ -22,22 +30,6 @@ const select_prov: ProvinciaControl = reactive({
   stringOptions: [],
   options: [],
 });
-
-const filterFnProv = (val: string, update: any) => {
-  if (val === '') {
-    update(() => {
-      select_prov.options = select_prov.stringOptions;
-    });
-    return;
-  }
-
-  update(() => {
-    const needle = val.toLowerCase();
-    select_prov.options = select_prov.stringOptions.filter(
-      (v: any) => v.label.toLowerCase().indexOf(needle) > -1
-    );
-  });
-};
 
 const LOGGE_USER = reactive({
   avatar: '',
@@ -53,9 +45,9 @@ const user_finded = reactive({
 });
 
 const form = reactive({
-  isPwd: false,
-  user: '',
-  password: '',
+  isPwd: true,
+  user: '', //'super_admin',
+  password: '', //'CpxPrivado2022**'
 });
 
 const canSubmitLoginUser = computed(() => {
@@ -67,23 +59,33 @@ const canSubmitSearchUser = computed(() => {
 
 const useOtherCount = () => console.log('method');
 const onReset = () => console.log('method');
-const onSubmit = () => console.log('method');
+const onSubmit = async () => {
+  const resp = await login({ username: form.user, password: form.password });
+  if (resp.status == 200) {
+    if (resp.payload) {
+      userStore.loginSuccess(resp.payload);
+      const per = await getAllPermision();
+      console.log(per);
+      if (per.status == 200) {
+        if (per.payload) {
+          permisionStore.setPermisionsApp(
+            per.payload,
+            resp.payload.listPermits
+          );
+          console.log('permisos desplegados');
+        }
+      }
+      router.push({ name: 'app' });
+    }
+  }
+};
 const loadForm = () => true;
 const obtenerUsuarioSiExiste = () => console.log('method');
 const verifyToken = () => console.log('method');
 const logout = () => console.log('method');
 
-onMounted(async () => {
-  let obj_provincias = await obtenerProvincias();
-  console.log(obj_provincias);
-  let prov_prepared = [];
-  if (obj_provincias.status == 200) {
-    let provincias = obj_provincias.data;
-    prov_prepared = await prepareToSelect(provincias, 'name', 'id');
-  }
-
-  select_prov.options = prov_prepared;
-  select_prov.stringOptions = prov_prepared;
+onMounted(() => {
+  console.log('montado');
 });
 </script>
 <template>
@@ -170,49 +172,58 @@ onMounted(async () => {
       </q-form>
 
       <q-form
-        @submit="obtenerUsuarioSiExiste"
+        @submit="onSubmit"
         @reset="onReset"
         class="q-gutter-md"
-        v-show="!exist_user_binding"
         v-if="!exist_sesion"
       >
         <q-card class="my-card no-shadow">
           <q-card-section>
-            <q-select
-              filled
-              transition-show="scale"
-              transition-hide="scale"
-              v-model="select_prov.model"
-              use-input
-              input-debounce="0"
-              label="Filtra tu Provincia"
-              hint="tu provincia aqui"
-              :options="select_prov.options"
-              @filter="filterFnProv"
-              behavior="dialog"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No resultados
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+            <q-input
+              dense
+              outlined
+              v-model="form.user"
+              label="Usuario *"
+              hint="tu usuario aqui"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val.trim().length > 0) ||
+                  'Por favor introduce tu usuario',
+              ]"
+            />
           </q-card-section>
 
           <q-card-section>
             <q-input
-              filled
-              v-model="form.user"
-              label="Teclea tu usuario *"
-              hint="tu usuario aqui"
-            />
+              dense
+              label="Contraseña *"
+              ref="fieldPass"
+              v-model="form.password"
+              outlined
+              :type="form.isPwd ? 'password' : 'text'"
+              :hint="estadoLogin"
+              autocomplete="off"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val.length > 0) ||
+                  'Por favor introduce tu contraseña',
+              ]"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="form.isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="form.isPwd = !form.isPwd"
+                />
+              </template>
+            </q-input>
           </q-card-section>
 
           <q-card-actions>
             <q-btn
-              label="Acceder"
+              label="Aceptar"
               type="submit"
               color="primary"
               :disable="!canSubmitSearchUser"
@@ -272,6 +283,12 @@ onMounted(async () => {
               :type="form.isPwd ? 'password' : 'text'"
               :hint="estadoLogin"
               autocomplete="off"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val.length > 0) ||
+                  'Por favor introduce tu contraseña',
+              ]"
             >
               <template v-slot:append>
                 <q-icon
