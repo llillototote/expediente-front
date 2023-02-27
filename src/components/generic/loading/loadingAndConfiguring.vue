@@ -19,9 +19,9 @@ export default defineComponent({
       this.$q.loading.show({
         spinner: QSpinnerFacebook,
         message: this.message,
-        spinnerColor: 'light-blue-7',
+        spinnerColor: 'red-10',
         messageColor: 'black',
-        backgroundColor: 'light-blue-2 ',
+        backgroundColor: 'red-2 ',
       });
     },
     firstDestroy() {
