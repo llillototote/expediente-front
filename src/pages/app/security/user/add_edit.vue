@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { Notify } from 'quasar';
 import { SelectField } from 'src/common/interface/util';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { validateCI, validateEmail } from 'src/common/validations/validate';
+import {
+  newEmailIsValid,
+  validateCI,
+  validarNewPass,
+} from 'src/common/validations/validate';
 import { prepareToSelect } from 'src/services/util';
 import { getAllRole } from 'src/services/external/role';
 import { RoleResponse } from 'src/services/external/roleDTO';
@@ -18,10 +23,13 @@ import {
   updateUser,
 } from 'src/services/external/user';
 import { getAllProvinces } from 'src/services/external/nomenclador';
+import { NAMESROUTES } from 'src/services/external/permisionDTO';
+import { useLoadingStore } from 'src/stores/loading-store';
 
 // USE GENERAL
 const route = useRoute();
 const router = useRouter();
+const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const mode = ref<string>('add');
@@ -62,20 +70,36 @@ async function onSubmit() {
   if (mode.value == 'add') {
     if (province.value != null) {
       const payload: UserCreateRequest = {
-        namePerson: nombre.value,
+        namePerson: nombre.value.trim(),
         activePerson: status.value,
-        emailPerson: correo.value,
-        firstLastNamePerson: apellido1.value,
-        secondLastNamePerson: apellido2.value,
+        emailPerson: correo.value.trim(),
+        firstLastNamePerson: apellido1.value.trim(),
+        secondLastNamePerson: apellido2.value.trim(),
         genderPerson: genero.value,
-        identityCardPerson: ci.value,
+        identityCardPerson: ci.value.trim(),
         passwordPerson: password.value,
         rols: role.value,
-        usernamePerson: usuario.value,
+        usernamePerson: usuario.value.trim(),
         provincePerson: province.value.value,
       };
       const resp = await createUser(payload);
       console.log(resp);
+      if (resp.status == 200) {
+        Notify.create({
+          message: 'Correcto, usuario creado satisfactoria!',
+          textColor: 'white',
+          color: 'green',
+          position: 'top-right',
+        });
+        router.push({ name: NAMESROUTES.APP_USER_LIST });
+      } else {
+        Notify.create({
+          message: resp.error,
+          textColor: 'white',
+          color: 'warning',
+          position: 'top-right',
+        });
+      }
     }
   } else if (mode.value == 'edit' && id.value != null) {
     const pass = changepass.value
@@ -85,27 +109,48 @@ async function onSubmit() {
       : {};
     if (province.value != null) {
       const payload: UserUpdateRequest = {
-        namePerson: nombre.value,
+        namePerson: nombre.value.trim(),
         activePerson: status.value,
-        emailPerson: correo.value,
-        firstLastNamePerson: apellido1.value,
-        secondLastNamePerson: apellido2.value,
+        emailPerson: correo.value.trim(),
+        firstLastNamePerson: apellido1.value.trim(),
+        secondLastNamePerson: apellido2.value.trim(),
         genderPerson: genero.value,
-        identityCardPerson: ci.value,
+        identityCardPerson: ci.value.trim(),
         ...pass,
         rols: role.value,
-        usernamePerson: usuario.value,
+        usernamePerson: usuario.value.trim(),
         provincePerson: province.value.value,
       };
       const resp = await updateUser(id.value, payload);
       console.log(resp);
+      if (resp.status == 200) {
+        Notify.create({
+          message: 'Correcto, usuario actualizado satisfactoria!',
+          textColor: 'white',
+          color: 'green',
+          position: 'top-right',
+        });
+        router.push({ name: NAMESROUTES.APP_USER_LIST });
+      } else {
+        Notify.create({
+          message: resp.error,
+          textColor: 'white',
+          color: 'warning',
+          position: 'top-right',
+        });
+      }
     }
   }
 }
 
 function onReset() {
-  console.log(1);
-  router.push({ name: 'user_list' });
+  Notify.create({
+    message: 'Info, operación abortada!',
+    textColor: 'white',
+    color: 'blue',
+    position: 'top-right',
+  });
+  router.push({ name: NAMESROUTES.APP_USER_LIST });
 }
 
 const filterFnProv = (val: string, update: any) => {
@@ -124,9 +169,25 @@ const filterFnProv = (val: string, update: any) => {
   });
 };
 
+const msg_email = ref('');
+const msg_pass = ref('');
+
+const validateEmail = (email: string) => {
+  const { msg, status } = newEmailIsValid(email);
+  msg_email.value = msg;
+  return !status;
+};
+
+const validatePass = (pass: string) => {
+  const { msgs, flag } = validarNewPass(pass);
+  msg_pass.value = msgs[0];
+  return flag;
+};
+
 // END METHODS FORM
 
 onMounted(async () => {
+  loadingStore.active();
   let obj_roles = await getAllRole();
   let role_prepared: SelectField[] = [];
   if (obj_roles.status == 200) {
@@ -183,6 +244,7 @@ onMounted(async () => {
       } else alert('usuario no recuperado');
     }
   }
+  loadingStore.inactive();
 });
 </script>
 <template>
@@ -265,9 +327,7 @@ onMounted(async () => {
                 (val) =>
                   (val && val.trim().length > 0) ||
                   'Por favor introduce tu correo electrónico',
-                (val) =>
-                  (val && validateEmail(val)) ||
-                  'Por favor introduce un correo electrónico válido',
+                (val) => (val && validateEmail(val)) || msg_email,
               ]"
             />
           </div>
@@ -276,6 +336,7 @@ onMounted(async () => {
               dense
               outlined
               v-model="ci"
+              mask="###########"
               label="CI *"
               hint="tu carnet de identidad"
               lazy-rules
@@ -332,6 +393,7 @@ onMounted(async () => {
                 (val) =>
                   (val && val.trim().length > 0) ||
                   'Por favor introduce tu nueva contraseña',
+                (val) => (val && validatePass(val)) || msg_pass,
               ]"
             >
               <template v-slot:append>
@@ -445,7 +507,7 @@ onMounted(async () => {
         <div>
           <q-btn label="Aceptar" type="submit" color="primary" />
           <q-btn
-            label="Cancelar"
+            label="Salir"
             type="reset"
             flat
             color="primary"

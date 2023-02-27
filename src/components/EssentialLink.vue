@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-item clickable tag="v-router" :to="link">
+    <q-item clickable tag="v-router" :to="{ name: link }" :dense="dense">
       <q-item-section v-if="icon" avatar>
         <q-icon :name="icon" />
       </q-item-section>
@@ -20,6 +20,7 @@ export interface EssentialLinkProps {
   caption?: string;
   link?: string;
   icon?: string;
+  dense?: boolean;
 }
 withDefaults(defineProps<EssentialLinkProps>(), {
   caption: '',

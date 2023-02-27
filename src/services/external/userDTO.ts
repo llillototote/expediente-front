@@ -1,5 +1,5 @@
-import { CODES } from "./permisionDTO";
-import { RoleResponse } from "./roleDTO";
+import { CODES } from './permisionDTO';
+import { RoleResponse } from './roleDTO';
 
 
 type Autority = {
@@ -22,11 +22,11 @@ export type LoginRequest = {
     username: string;
 }
 
-export type DataLoginBasic = Omit<LoginRequest, "authLocal">
+export type DataLoginBasic = Omit<LoginRequest, 'authLocal'>
 
 export enum GENDER {
-    F = "F",
-    M = "M",
+    F = 'F',
+    M = 'M',
 }
 
 export type UserResponse = {
@@ -70,7 +70,7 @@ export type UserFindedResponse = {
     province: ProvinceResponse;
 }
 
-export type UserCreateRequest = Omit<UserResponse, "pkPerson">
+export type UserCreateRequest = Omit<UserResponse, 'pkPerson'>
 
 export type UserUpdateRequest = Partial<UserCreateRequest>
 

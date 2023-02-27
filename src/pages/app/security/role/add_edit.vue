@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Notify } from 'quasar';
 import { SelectField, Qtree } from 'src/common/interface/util';
-import { CODES, ENTITY } from 'src/services/external/permisionDTO';
+import { CODES, ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
 import {
   createRole,
   getByIdRole,
@@ -13,11 +14,13 @@ import {
   RoleCreateRequest,
   RoleUpdateRequest,
 } from 'src/services/external/roleDTO';
+import { useLoadingStore } from 'src/stores/loading-store';
 
 // USE GENERAL
 const route = useRoute();
 const router = useRouter();
 const permisionStore = usePermisionStore();
+const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const mode = ref<string>('add');
@@ -42,21 +45,48 @@ const simple = ref<Qtree<CODES>[]>([
       {
         label: ENTITY.USUARIO,
         children: [
-          { label: CODES.USERS_LIST_ALL },
-          { label: CODES.USER_LIST_BY_ID },
-          { label: CODES.USER_CREATE },
-          { label: CODES.USER_UPDATE_BY_ID },
-          { label: CODES.USER_DELETE_BY_ID },
+          { label: CODES.LISTAR_USUARIOS },
+          { label: CODES.OBTENER_USUARIO_POR_ID },
+          { label: CODES.CREAR_USUARIO },
+          { label: CODES.MODIFICAR_USUARIO_POR_ID },
+          { label: CODES.ELIMINAR_USUARIO_POR_ID },
         ],
       },
       {
         label: ENTITY.ROL,
         children: [
-          { label: CODES.ROLS_LIST_ALL },
-          { label: CODES.ROL_LIST_BY_ID },
-          { label: CODES.ROL_CREATE },
-          { label: CODES.ROL_UPDATE_BY_ID },
-          { label: CODES.ROL_DELETE_BY_ID },
+          { label: CODES.LISTAR_ROLES },
+          { label: CODES.OBTENER_ROL_POR_ID },
+          { label: CODES.CREAR_ROL },
+          { label: CODES.MODIFICAR_ROL_POR_ID },
+          { label: CODES.ELIMINAR_ROL_POR_ID },
+        ],
+      },
+      {
+        label: ENTITY.DEMANDA,
+        children: [
+          { label: CODES.LISTAR_DEMANDA_USUARIO },
+          { label: CODES.CREAR_DEMANDA },
+          { label: CODES.MODIFICAR_DEMANDA_POR_ID },
+          { label: CODES.ELIMINAR_DEMANDA_POR_ID },
+        ],
+      },
+      {
+        label: ENTITY.CLIENTE,
+        children: [
+          { label: CODES.LISTAR_CLIENTES },
+          { label: CODES.CREAR_CLIENTE },
+          { label: CODES.MODIFICAR_CLIENTE_POR_ID },
+          { label: CODES.ELIMINAR_CLIENTE_POR_ID },
+        ],
+      },
+      {
+        label: ENTITY.PRODUCTO,
+        children: [
+          { label: CODES.LISTAR_PRODUCTOS },
+          { label: CODES.OBTENER_PRODUCTO_POR_ID },
+          { label: CODES.OBTENER_PRODUCTO_POR_CODIGO },
+          { label: CODES.OBTENER_LISTADO_DE_PRODUCTO_POR_NOMBRE },
         ],
       },
     ],
@@ -81,36 +111,73 @@ async function onSubmit() {
       return;
     }
   }
-  console.log(1);
+
   if (mode.value == 'add') {
     if (ticked_info.value.length > 0) {
       const payload: RoleCreateRequest = {
-        descriptionRol: descripcion.value,
-        nameRol: name.value,
+        descriptionRol: descripcion.value.trim(),
+        nameRol: name.value.trim(),
         permits: ticked_info.value.map((t) => t.value),
       };
       const resp = await createRole(payload);
       console.log(resp);
+      if (resp.status == 200) {
+        Notify.create({
+          message: 'Correcto, rol creado satisfactoria!',
+          textColor: 'white',
+          color: 'green',
+          position: 'top-right',
+        });
+        router.push({ name: NAMESROUTES.APP_ROLE_LIST });
+      } else {
+        Notify.create({
+          message: resp.error,
+          textColor: 'white',
+          color: 'warning',
+          position: 'top-right',
+        });
+      }
     }
   } else if (mode.value == 'edit' && id.value != null) {
     if (ticked_info.value.length > 0) {
       const payload: RoleUpdateRequest = {
-        descriptionRol: descripcion.value,
-        nameRol: name.value,
+        descriptionRol: descripcion.value.trim(),
+        nameRol: name.value.trim(),
         permits: ticked_info.value.map((t) => t.value),
       };
       const resp = await updateRole(id.value, payload);
       console.log(resp);
+      if (resp.status == 200) {
+        Notify.create({
+          message: 'Correcto, rol actualizado satisfactoriamente!',
+          textColor: 'white',
+          color: 'green',
+          position: 'top-right',
+        });
+      } else {
+        Notify.create({
+          message: resp.error,
+          textColor: 'white',
+          color: 'warning',
+          position: 'top-right',
+        });
+      }
     }
   }
 }
 function onReset() {
-  console.log(1);
-  router.push({ name: 'role_list' });
+  Notify.create({
+    message: 'Info, operación abortada!',
+    textColor: 'white',
+    color: 'blue',
+    position: 'top-right',
+  });
+  router.push({ name: NAMESROUTES.APP_ROLE_LIST });
 }
 // END METHODS FORM
 
 onMounted(async () => {
+  loadingStore.active();
   mode.value = route.query?.mode ? route.query?.mode.toString() : 'add';
   if (mode.value == 'add') {
     title.value = 'Adicionar rol';
@@ -133,6 +200,7 @@ onMounted(async () => {
       } else alert('usuario no recuperado');
     }
   }
+  loadingStore.inactive();
 });
 </script>
 <template>
@@ -257,7 +325,7 @@ onMounted(async () => {
           <div class="col-8 q-pa-sm">
             <q-btn label="Aceptar" type="submit" color="primary" />
             <q-btn
-              label="Cancelar"
+              label="Salir"
               type="reset"
               flat
               color="primary"

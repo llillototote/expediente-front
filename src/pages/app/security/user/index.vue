@@ -1,39 +1,5 @@
-<template>
-  <q-page class="row">
-    <div class="col s12">
-      <div class="q-pa-md q-gutter-sm">
-        <q-btn
-          v-if="permisionStore.havePermision('create', ENTITY.USUARIO)"
-          color="primary"
-          label="Adicionar"
-          :to="{ name: 'user_write', query: { mode: 'add' } }"
-        />
-      </div>
-
-      <table-component
-        v-if="permisionStore.havePermision('listAll', ENTITY.USUARIO)"
-        :key="refresh"
-        title="Usuarios"
-        :data="seed"
-        option="nombre"
-        :actions="actions"
-        @edit="editar"
-        @delete="eliminar"
-        :hide="[
-          'pkPerson',
-          'passwordPerson',
-          'rols',
-          'genderPerson',
-          'identityCardPerson',
-          'provincePerson',
-        ]"
-      >
-      </table-component>
-    </div>
-  </q-page>
-</template>
-
 <script setup lang="ts">
+import { Notify } from 'quasar';
 import { onMounted, ref } from 'vue';
 import tableComponent from 'components/generic/tablas/table.vue';
 import { ACTIONS } from 'src/common/enum/actions';
@@ -43,11 +9,16 @@ import promiseDialog from 'src/services/promiseDialog';
 import { deleteByIdUser, getAllUser } from 'src/services/external/user';
 import { maskObject } from 'src/services/util';
 import { UserResponse } from 'src/services/external/userDTO';
-import { ENTITY } from 'src/services/external/permisionDTO';
+import { ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
 import { Mask } from 'src/services/external/utilDTO';
 import { usePermisionStore } from 'src/stores/permision-store';
+import { useLoadingStore } from 'src/stores/loading-store';
+
+// USE GENERAL
 const router = useRouter();
 const permisionStore = usePermisionStore();
+const loadingStore = useLoadingStore();
+// END USE GENERAL
 
 const seed = ref<any[]>([]);
 
@@ -79,21 +50,32 @@ async function eliminar(payload: any) {
   if (desicion) {
     const resp = await deleteByIdUser(row['pkPerson']);
     if (resp.status == 200) {
-      alert('eliminado satisfactoriamente');
-    } else alert('no se pudo eliminar');
-  } else alert('cancelado');
+      await listarUsuarios();
+      Notify.create({
+        message: `Info, usuario eliminado satisfactoriamente!`,
+        textColor: 'white',
+        color: 'blue',
+        position: 'top-right',
+      });
+    } else
+      Notify.create({
+        message: `Advertencia, No se pudo eliminar el usuario!`,
+        textColor: 'white',
+        color: 'warning',
+        position: 'top-right',
+      });
+  }
 }
 
 function editar(payload: any) {
-  console.log(payload);
   const { row } = payload;
   router.push({
-    name: 'user_write',
+    name: NAMESROUTES.APP_USER_WRITE,
     query: { mode: 'edit', payload: row['pkPerson'] },
   });
 }
 
-onMounted(async () => {
+async function listarUsuarios() {
   const resp = await getAllUser();
   if (resp.status == 200) {
     const mask: Mask<UserResponse> = {
@@ -117,5 +99,46 @@ onMounted(async () => {
 
     refresh.value++;
   }
+}
+
+onMounted(async () => {
+  loadingStore.active();
+  await listarUsuarios();
+  loadingStore.inactive();
 });
 </script>
+<template>
+  <q-page class="row">
+    <div class="col s12">
+      <div class="q-pa-md q-gutter-sm">
+        <q-btn
+          v-if="permisionStore.havePermision('create', ENTITY.USUARIO)"
+          color="primary"
+          label="Adicionar"
+          :to="{ name: NAMESROUTES.APP_USER_WRITE, query: { mode: 'add' } }"
+        />
+      </div>
+
+      <table-component
+        v-if="permisionStore.havePermision('listAll', ENTITY.USUARIO)"
+        :key="refresh"
+        title="Usuarios"
+        :data="seed"
+        option="nombre"
+        :actions="actions"
+        @edit="editar"
+        @delete="eliminar"
+        :hide="[
+          'pkPerson',
+          'passwordPerson',
+          'rols',
+          'genderPerson',
+          'identityCardPerson',
+          'provincePerson',
+          'index',
+        ]"
+      >
+      </table-component>
+    </div>
+  </q-page>
+</template>

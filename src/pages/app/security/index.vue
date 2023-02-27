@@ -3,8 +3,5 @@
 </template>
 
 <script setup lang="ts">
-import ExampleComponent from 'components/ExampleComponent.vue';
-import { onMounted, ref } from 'vue';
 
-onMounted(async () => {});
 </script>

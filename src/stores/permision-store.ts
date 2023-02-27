@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { SelectField } from 'src/common/interface/util';
 import { permisionsApp } from 'src/config/permisos';
-import { CODES, ENTITY, Module, PermisionApp, PermisionIdealResponse, PermisionResponse } from 'src/services/external/permisionDTO';
+import { CODES, ENTITY, Module, Permision, PermisionApp, PermisionResponse } from 'src/services/external/permisionDTO';
 
 export const usePermisionStore = defineStore('permision', {
     persist: true,
@@ -17,21 +17,52 @@ export const usePermisionStore = defineStore('permision', {
         getModulesByPermisionListById: (state) => state.permisionsApp.listById.modules.map(it => it.entity),
         getModulesByPermisionUpdateById: (state) => state.permisionsApp.updateById.modules.map(it => it.entity),
         getModulesByPermisionDeleteById: (state) => state.permisionsApp.deleteById.modules.map(it => it.entity),
+        getActivesPermisionIds: (state) => {
+            console.log(state.permisionsApp)
+            let list: string[] = []
+            Object.keys(state.permisionsApp).forEach(group => {
+                if (state.permisionsApp[group].active) {
+                    const listPerm: Permision = state.permisionsApp[group]
+                    const ids: string[] = listPerm.modules.filter(mo => mo.active).map(mo => {
+                        console.log({ group, code: mo.code, entity: mo.entity, pkPermits: mo.pkPermits })
+                        return mo.pkPermits
+                    })
+                    list = list.concat(ids)
+                }
+            })
+            console.log('list actives')
+            console.log(list)
+            return list
+        },
+        getDesactivesPermisionIds: (state) => {
+            let list: string[] = []
+            Object.keys(state.permisionsApp).forEach(group => {
+                if (state.permisionsApp[group].active) {
+                    const listPerm: Permision = state.permisionsApp[group]
+                    const ids: string[] = listPerm.modules.filter(mo => !mo.active).map(mo => mo.pkPermits)
+                    list = list.concat(ids)
+                }
+            })
+            console.log('list desactives')
+            console.log(list)
+            return list
+        },
     },
     actions: {
         destroyPermisions(): void {
-            localStorage.removeItem("permision")
+            localStorage.removeItem('permision')
         },
         setPermisionsApp(permisions: PermisionResponse[], granted: CODES[]): void {
+            console.log('set permisions')
             for (const permisionName in this.permisionsApp) {
                 if (Object.prototype.hasOwnProperty.call(this.permisionsApp, permisionName)) {
-                    this.permisionsApp[permisionName].modules.forEach((module: Module) => {
+                    this.permisionsApp[permisionName].modules.forEach((module: Module, index: number) => {
                         const findedP = permisions.find(it => it.namePermits == module.code)
                         if (findedP) {
                             module.description = findedP.descripctionPermits
                             module.pkPermits = findedP.pkPermits
-                        }
-                        module.active = granted.includes(module.code)
+                            module.active = findedP.activePermits && granted.includes(module.code)
+                        } else console.log('FALLO')
                     });
 
                 }

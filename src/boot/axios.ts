@@ -16,7 +16,15 @@ declare module '@vue/runtime-core' {
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-const api = axios.create({ baseURL: 'http://localhost:7443' });
+
+const SCHEMA = process.env.SCHEMA;
+const BACKEND_IP = process.env.BACKEND_IP;
+const BACKEND_PORT = process.env.BACKEND_PORT;
+
+const api = axios.create({
+  baseURL: `${SCHEMA}://${BACKEND_IP}:${BACKEND_PORT}/api/v1`
+});
+
 const userStore = useUserStore()
 //api.defaults.headers.common['Authorization'] = `Bearer ${userStore.getProfile.token}`;
 // Add a request interceptor
@@ -35,20 +43,22 @@ api.interceptors.request.use(function (config) {
 api.interceptors.response.use(function (response) {
   // Do something with response data
   //instanceOfInterface<string[]>(response.data)
-  Notify.create({
+  /*Notify.create({
     message: `Correcto, operación satisfactoria!`,
     textColor: 'white',
     color: 'green',
     position: 'top-right'
-  })
+  })*/
   return preloadResponseExternal<unknown>(response)
 }, function (error) {
-  Notify.create({
-    message: `Error, ${error.message}!`,
+
+  const message = `Error, ${(error.response.data) ? error.response.data.message : error.message}!`
+  /*Notify.create({
+    message,
     textColor: 'white',
     color: 'red',
     position: 'top-right'
-  })
+  })*/
   // Do something with response error
   return preloadResponseExternal<null>(error)
 });

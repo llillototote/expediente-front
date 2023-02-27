@@ -1,13 +1,29 @@
 version: '3.7'
 services:
-  saylam-from:
+  cs_copextel:
     build:
       context: .
       target: production-stage
       dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
     ports:
-      - 9000:80
+      - 8080:80
+    environment:
+      - SCHEMA=$SCHEMA
+      - BACKEND_IP=cs_copextel_back
+      - BACKEND_PORT=$BACKEND_PORT
     volumes:
-      - '.:/opt/app'
-      - '/var/opt/node_modules'
+      - .:/opt/app
+      - /opt/app/node_modules
     #command: /bin/sh -c "yarn && quasar dev"
+  cs_copextel_back:
+    image: openjdk:11-slim-buster
+    container_name: "cs_copextel_back"
+    restart: always
+    ports:
+      - 7443:7443
+    volumes:
+      - "./core/UsersModule-0.0.4-RELEASE.war:/app.war"
+    command: ['java', '-jar', '/app.war']

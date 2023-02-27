@@ -1,4 +1,6 @@
 import { ResponseExternal, SelectField } from 'src/common/interface/util';
+import { permisionsRoutesApp } from 'src/config/permisos';
+import { CODES } from './external/permisionDTO';
 
 export function prepareToSelect(
   collection: any[],
@@ -30,6 +32,7 @@ export function prepareDataToTabla(array: any[], actions = false, hide: string[]
           headerClasses: (!hide.includes(key)) ? '' : 'hidden',
         });
       } else {
+
         columns.push({
           name: key,
           label: key,
@@ -87,16 +90,23 @@ export function preloadResponseExternal<T>(response: any): ResponseExternal<T> {
     } as ResponseExternal<T>
 
   } else if (response.response) {
-    return {
-      payload: null,
-      status: response.response.status,
-      error: response.message
-    } as ResponseExternal<T>
+    if (response.response.data) {
+      return {
+        payload: null,
+        status: response.response.status,
+        error: response.response.data.message
+      } as ResponseExternal<T>
+    } else
+      return {
+        payload: null,
+        status: response.response.status,
+        error: response.message
+      } as ResponseExternal<T>
   }
   return {
     payload: null,
     status: 0,
-    error: "error no controlado"
+    error: 'error no controlado'
   } as ResponseExternal<T>
 }
 
@@ -109,9 +119,19 @@ export function maskObject(obj: any, mask: any) {
   return objnew
 }
 
-export function revisarPermisosRouter(ruta: string, permisos: any[]): boolean {
-  console.log(ruta)
-  console.log(permisos)
-  const flag = true;
-  return flag;
+export function revisarPermisosRouter(route: string, permises: any[]): boolean {
+  return verifyHavePermisionsRoutesApp(route, permises);
+}
+
+function verifyHavePermisionsRoutesApp(route: string, permises: CODES[]): boolean {
+  const finded = permisionsRoutesApp.find(it => it.routename == route)
+  if (finded) {
+    let flag = true
+    finded.dependencies.forEach(per => {
+      if (!permises.includes(per)) {
+        flag = false
+      }
+    })
+    return flag
+  } else return true
 }

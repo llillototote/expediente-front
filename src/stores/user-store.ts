@@ -5,10 +5,10 @@ export const useUserStore = defineStore('user', {
   persist: true,
   state: () => ({
     profile: {
-      token: "",
-      bearer: "",
-      userName: "",
-      namePerson: "",
+      token: '',
+      bearer: '',
+      userName: '',
+      namePerson: '',
       authorities: [],
       listPermits: []
     } as PayloadLoginStore
@@ -27,10 +27,10 @@ export const useUserStore = defineStore('user', {
       this.profile.authorities = profile.authorities
     },
     logoutSuccess() {
-      this.profile.bearer = ""
-      this.profile.token = ""
-      this.profile.userName = ""
-      this.profile.namePerson = ""
+      this.profile.bearer = ''
+      this.profile.token = ''
+      this.profile.userName = ''
+      this.profile.namePerson = ''
       this.profile.listPermits = []
       this.profile.authorities = []
     }

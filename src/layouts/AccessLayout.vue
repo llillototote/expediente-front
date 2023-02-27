@@ -1,3 +1,6 @@
+<script lang="ts" setup>
+import { NAMESROUTES } from 'src/services/external/permisionDTO';
+</script>
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header reveal elevated class="bg-primary text-white">
@@ -9,9 +12,6 @@
           </q-avatar>
           CADENA SUMINISTRO
         </q-toolbar-title>
-
-        <q-btn dense flat label="registrarse" :to="{ name: 'register' }" />
-        <q-btn dense flat label="autenticarse" :to="{ name: 'login' }" />
       </q-toolbar>
     </q-header>
 
@@ -29,49 +29,61 @@
     <q-footer elevated class="bg-primary text-white">
       <q-toolbar class="row text-center">
         <!-- <q-toolbar-title> </q-toolbar-title> -->
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Descargar Locaciones de Copextel."
-          />
-        </div>
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Descargar Ficha cliente"
-          />
-        </div>
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Contáctenos"
-          />
-        </div>
-
         <!---->
       </q-toolbar>
     </q-footer>
   </q-layout>
 </template>
-
-<script lang="ts" setup></script>
 <style>
 .banner {
-  height: 120px;
-  background-image: url('../../public/banner.png');
+  height: 140px;
+  background-image: url('../../public/1200.png');
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+@media (max-width: 389px) {
+  .banner {
+    height: 90px;
+    background-image: url('../../public/320.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 480px) {
+  .banner {
+    height: 60px;
+    background-image: url('../../public/480.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 506px) {
+  .banner {
+    height: 70px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 507px) and (max-width: 727px) {
+  .banner {
+    height: 90px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 727px) and (max-width: 1024px) {
+  .banner {
+    height: 130px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
 }
 </style>

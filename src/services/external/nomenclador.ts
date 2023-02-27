@@ -4,6 +4,6 @@ import { ProvinceResponse } from './userDTO';
 
 
 export async function getAllProvinces(): Promise<ResponseExternal<ProvinceResponse[]>> {
-  return await api.get('/province_controller');
+  return await api.get('/security/province_controller');
 }
 

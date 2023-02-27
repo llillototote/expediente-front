@@ -1,6 +1,6 @@
-import { Dialog } from "quasar";
+import { Dialog } from 'quasar';
 
-let qs: any = { hide: () => { console.log("ok") } }
+let qs: any = { hide: () => { console.log('ok') } }
 export { qs }
 
 class _AppDialogService {
@@ -9,32 +9,32 @@ class _AppDialogService {
 
   async dialogtest() {
     // (un)comment one or move of the tests below
-    this.alert("Test Alert", "All is good, no wait");
+    this.alert('Test Alert', 'All is good, no wait');
     console.log(
-      "confirmation",
-      await this.confirm("Test Confirm", "everything ok?", "really?")
+      'confirmation',
+      await this.confirm('Test Confirm', 'everything ok?', 'really?')
     );
-    await this.alert("Test Alert", "All is good,  wait for dismiss");
+    await this.alert('Test Alert', 'All is good,  wait for dismiss');
     console.log(
-      "prompt",
-      await this.prompt("Test Prompt", "What is your favorite color", false)
+      'prompt',
+      await this.prompt('Test Prompt', 'What is your favorite color', false)
     );
   }
   async dialog(opts: any = {}) {
     return new Promise(resolve => {
-      if (opts.prompt === true) opts.prompt = { model: "", type: "text" };
+      if (opts.prompt === true) opts.prompt = { model: '', type: 'text' };
 
       qs = Dialog.create({
-        title: opts.title || "",
-        message: opts.msg || "",
+        title: opts.title || '',
+        message: opts.msg || '',
         cancel: opts.cancel == null ? false : opts.cancel,
         persistent: opts.persist == null ? false : opts.persist,
         prompt: opts.prompt,
         ok: {
-          label: opts.ok || "ok"
+          label: opts.ok || 'ok'
         }
       })
-        .onOk((res: string) => resolve(opts.confirm ? true : res || ""))
+        .onOk((res: string) => resolve(opts.confirm ? true : res || ''))
         .onCancel(() => resolve(false));
     });
   }

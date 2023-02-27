@@ -1,3 +1,38 @@
+<script setup lang="ts">
+import { Notify } from 'quasar';
+import { onMounted } from 'vue';
+import { updateStatusPermision } from 'src/services/external/permision';
+import { usePermisionStore } from 'src/stores/permision-store';
+const permisionStore = usePermisionStore();
+const data = permisionStore.permisionsApp;
+
+async function actualizarPermisos() {
+  const active = await updateStatusPermision(
+    true,
+    permisionStore.getActivesPermisionIds
+  );
+  const desactive = await updateStatusPermision(
+    false,
+    permisionStore.getDesactivesPermisionIds
+  );
+  if (active && desactive) {
+  } else {
+    Notify.create({
+      message: 'Los permisos no se actualizaron satisfactoriamente',
+      textColor: 'white',
+      color: 'warning',
+      position: 'top-right',
+    });
+  }
+}
+onMounted(async () => {
+  //const resp = await getAllPermision();
+  /*if (resp.status == 200) {
+    if (resp.payload != null) {
+    }
+  }*/
+});
+</script>
 <template>
   <q-page class="row">
     <div class="col s12">
@@ -46,7 +81,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -110,7 +148,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -172,7 +213,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -234,7 +278,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -298,7 +345,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -360,7 +410,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -424,7 +477,10 @@
                       </q-item-section>
 
                       <q-item-section side>
-                        <q-checkbox v-model="permiso.active" />
+                        <q-checkbox
+                          v-model="permiso.active"
+                          @update:model-value="actualizarPermisos"
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -449,22 +505,3 @@
     </div>
   </q-page>
 </template>
-
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import promiseDialog from 'src/services/promiseDialog';
-import { getAllPermision } from 'src/services/external/permision';
-import { permisionsApp } from 'src/config/permisos';
-import { usePermisionStore } from 'src/stores/permision-store';
-const router = useRouter();
-const permisionStore = usePermisionStore();
-const data = permisionStore.permisionsApp;
-onMounted(async () => {
-  //const resp = await getAllPermision();
-  /*if (resp.status == 200) {
-    if (resp.payload != null) {
-    }
-  }*/
-});
-</script>

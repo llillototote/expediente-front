@@ -1,5 +1,119 @@
+<script setup lang="ts">
+import { NAMESROUTES } from 'src/services/external/permisionDTO';
+import { ref } from 'vue';
+import EssentialLink, {
+  EssentialLinkProps,
+} from 'components/EssentialLink.vue';
+import load from 'components/generic/loading/loadingAndConfiguring.vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from 'src/stores/user-store';
+import { usePermisionStore } from 'src/stores/permision-store';
+import { useLoadingStore } from 'src/stores/loading-store';
+import { revisarPermisosRouter } from 'src/services/util';
+
+const userStore = useUserStore();
+const permisionStore = usePermisionStore();
+const loadingStore = useLoadingStore();
+const router = useRouter();
+
+const leftDrawerOpen = ref(false);
+
+const essentialLinks: EssentialLinkProps[] = [
+  {
+    title: 'Inicio',
+    caption: 'Descripcion del módulo de inicio',
+    icon: 'home',
+    link: NAMESROUTES.APP_HOME,
+  },
+];
+
+if (
+  userStore.getProfile.authorities.find((aut) =>
+    ['ROLE_ADMINISTRADOR', 'ROLE_SUPERADMIN'].includes(aut.authority)
+  )
+) {
+  if (
+    revisarPermisosRouter(
+      NAMESROUTES.APP_USER_LIST,
+      userStore.getProfile.listPermits
+    )
+  )
+    essentialLinks.push({
+      title: 'Usuarios',
+      caption: 'Descripcion del módulo de usuarios',
+      icon: 'admin_panel_settings',
+      link: NAMESROUTES.APP_USER_LIST,
+    });
+  if (
+    revisarPermisosRouter(
+      NAMESROUTES.APP_ROLE_LIST,
+      userStore.getProfile.listPermits
+    )
+  )
+    essentialLinks.push({
+      title: 'Roles',
+      caption: 'Descripcion del módulo de roles',
+      icon: 'add_moderator',
+      link: NAMESROUTES.APP_ROLE_LIST,
+    });
+}
+
+if (
+  revisarPermisosRouter(
+    NAMESROUTES.APP_CLIENT_LIST,
+    userStore.getProfile.listPermits
+  )
+)
+  essentialLinks.push({
+    title: 'Clientes',
+    caption: 'Descripcion del módulo de clientes',
+    icon: 'add_moderator',
+    link: NAMESROUTES.APP_CLIENT_LIST,
+  });
+
+if (
+  revisarPermisosRouter(
+    NAMESROUTES.APP_PRODUCT_LIST,
+    userStore.getProfile.listPermits
+  )
+)
+  essentialLinks.push({
+    title: 'Productos',
+    caption: 'Descripcion del módulo de productos',
+    icon: 'add_moderator',
+    link: NAMESROUTES.APP_PRODUCT_LIST,
+  });
+
+if (
+  userStore.getProfile.authorities.find(
+    (aut) => aut.authority == 'ROLE_SUPERADMIN'
+  )
+) {
+  essentialLinks.push({
+    title: 'Permisos',
+    caption: 'Descripcion del módulo de permisos',
+    icon: 'front_hand',
+    link: NAMESROUTES.APP_PERMISION_LIST,
+  });
+}
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+function logout() {
+  userStore.logoutSuccess();
+  permisionStore.destroyPermisions();
+  router.push({ name: NAMESROUTES.LOGIN });
+}
+</script>
 <template>
   <q-layout view="hHh lpR fFf">
+    <load
+      :triger="loadingStore.getStatus"
+      :key="loadingStore.getStatus"
+      message="Cargando..."
+    />
     <q-header reveal elevated class="bg-primary text-white">
       <div class="banner"></div>
       <q-toolbar>
@@ -70,180 +184,64 @@
           :key="link.title"
           v-bind="link"
         />
-        <q-item clickable>
-          <q-item-section>Gestionar Demanda</q-item-section>
-          <q-item-section side>
-            <q-icon name="keyboard_arrow_right" />
-          </q-item-section>
-
-          <q-menu anchor="top end" self="top start">
-            <q-list>
-              <q-item dense clickable>
-                <q-item-section>Crear solicitud</q-item-section>
-                <q-item-section side>
-                  <q-icon name="keyboard_arrow_right" />
-                </q-item-section>
-                <q-menu auto-close anchor="top end" self="top start">
-                  <q-list>
-                    <q-item dense clickable>
-                      <q-item-section>Solicitud de Productos</q-item-section>
-                    </q-item>
-                    <q-item dense clickable>
-                      <q-item-section
-                        >Solicitud de Servicios Tecnológicas</q-item-section
-                      >
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-item>
-              <q-item dense clickable>
-                <q-item-section>Modificar Solicitud</q-item-section>
-              </q-item>
-              <q-item dense clickable>
-                <q-item-section>Aprobar Demanda</q-item-section>
-              </q-item>
-              <q-item dense clickable>
-                <q-item-section>Descargar Demanda</q-item-section>
-              </q-item>
-              <q-item dense clickable>
-                <q-item-section>Atender Solicitud</q-item-section>
-              </q-item>
-              <q-item dense clickable>
-                <q-item-section>Clasificar Producto</q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-item>
-        <q-separator />
-
-        <q-item clickable v-close-popup>
-          <q-item-section>Compra</q-item-section>
-        </q-item>
-        <q-separator />
-        <q-item clickable v-close-popup>
-          <q-item-section>Venta</q-item-section>
-        </q-item>
       </q-list>
     </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
-
-    <q-footer elevated class="bg-primary text-white">
-      <q-toolbar class="row text-center">
-        <!-- <q-toolbar-title> </q-toolbar-title> -->
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Descargar Locaciones de Copextel."
-          />
-        </div>
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Descargar Ficha cliente"
-          />
-        </div>
-
-        <div class="col-4">
-          <q-btn
-            no-caps
-            flat
-            color="primary"
-            text-color="white"
-            label="Contáctenos"
-          />
-        </div>
-
-        <!---->
-      </q-toolbar>
-    </q-footer>
   </q-layout>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-import EssentialLink, {
-  EssentialLinkProps,
-} from 'components/EssentialLink.vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from 'src/stores/user-store';
-import { usePermisionStore } from 'src/stores/permision-store';
-
-const userStore = useUserStore();
-const permisionStore = usePermisionStore();
-const router = useRouter();
-
-const leftDrawerOpen = ref(false);
-const rightDrawerOpen = ref(false);
-
-const link = ref('');
-
-const essentialLinks: EssentialLinkProps[] = [
-  {
-    title: 'Inicio',
-    caption: 'Descripcion del módulo de inicio',
-    icon: 'home',
-    link: '/app',
-  },
-];
-
-if (
-  userStore.getProfile.authorities.find((aut) =>
-    ['ROLE_ADMINISTRADOR', 'ROLE_SUPERADMIN'].includes(aut.authority)
-  )
-) {
-  essentialLinks.push({
-    title: 'Usuarios',
-    caption: 'Descripcion del módulo de usuarios',
-    icon: 'admin_panel_settings',
-    link: '/app/user',
-  });
-  essentialLinks.push({
-    title: 'Roles',
-    caption: 'Descripcion del módulo de roles',
-    icon: 'add_moderator',
-    link: '/app/role',
-  });
-}
-
-if (
-  userStore.getProfile.authorities.find(
-    (aut) => aut.authority == 'ROLE_SUPERADMIN'
-  )
-) {
-  essentialLinks.push({
-    title: 'Permisos',
-    caption: 'Descripcion del módulo de permisos',
-    icon: 'front_hand',
-    link: '/app/permision',
-  });
-}
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
-}
-
-function logout() {
-  userStore.logoutSuccess();
-  permisionStore.destroyPermisions();
-  router.push({ name: 'login' });
-}
-</script>
 <style>
 .banner {
-  height: 120px;
-  background-image: url('../../public/banner.png');
+  height: 140px;
+  background-image: url('../../public/1200.png');
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+@media (max-width: 389px) {
+  .banner {
+    height: 90px;
+    background-image: url('../../public/320.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 390px) and (max-width: 480px) {
+  .banner {
+    height: 60px;
+    background-image: url('../../public/480.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 506px) {
+  .banner {
+    height: 70px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 507px) and (max-width: 727px) {
+  .banner {
+    height: 90px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 727px) and (max-width: 1024px) {
+  .banner {
+    height: 130px;
+    background-image: url('../../public/768.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
 }
 </style>
