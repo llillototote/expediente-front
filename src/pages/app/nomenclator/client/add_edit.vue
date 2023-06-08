@@ -15,15 +15,15 @@ import {
   UserCreateRequest,
   UserUpdateRequest,
   GENDER,
-  ProvinceResponse,
 } from 'src/services/external/userDTO';
 import {
   getByIdUser,
   createUser,
   updateUser,
 } from 'src/services/external/user';
-import { getAllProvinces } from 'src/services/external/nomenclador';
+import { getAllProvinces } from 'src/services/external/nomenclator/province';
 import { NAMESROUTES } from 'src/services/external/permisionDTO';
+import { ProvinceResponse } from 'src/services/external/nomenclator/provinceDTO';
 
 // USE GENERAL
 const route = useRoute();
@@ -84,7 +84,7 @@ async function onSubmit() {
       console.log(resp);
       if (resp.status == 200) {
         Notify.create({
-          message: `Correcto, usuario creado satisfactoria!`,
+          message: 'Correcto, usuario creado satisfactoria!',
           textColor: 'white',
           color: 'green',
           position: 'top-right',
@@ -123,7 +123,7 @@ async function onSubmit() {
       console.log(resp);
       if (resp.status == 200) {
         Notify.create({
-          message: `Correcto, usuario actualizado satisfactoria!`,
+          message: 'Correcto, usuario actualizado satisfactoria!',
           textColor: 'white',
           color: 'green',
           position: 'top-right',
@@ -143,7 +143,7 @@ async function onSubmit() {
 
 function onReset() {
   Notify.create({
-    message: `Info, operación abortada!`,
+    message: 'Info, operación abortada!',
     textColor: 'white',
     color: 'blue',
     position: 'top-right',

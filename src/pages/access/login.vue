@@ -14,8 +14,8 @@ const router = useRouter();
 
 const form = reactive({
   isPwd: true,
-  user: '', //'super_admin',
-  password: '', //'CpxPrivado2022**'
+  user: 'super_admin', //'',
+  password: 'CpxPrivado2022**', //''
 });
 
 const onReset = () => {

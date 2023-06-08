@@ -40,9 +40,21 @@ if (
   )
     essentialLinks.push({
       title: 'Usuarios',
-      caption: 'Descripcion del módulo de usuarios',
+      caption: 'Usuarios internos',
       icon: 'admin_panel_settings',
       link: NAMESROUTES.APP_USER_LIST,
+    });
+  if (
+    revisarPermisosRouter(
+      NAMESROUTES.APP_USER_CLIENT_LIST,
+      userStore.getProfile.listPermits
+    )
+  )
+    essentialLinks.push({
+      title: 'Usuarios Clientes',
+      caption: 'Usuarios externos',
+      icon: 'admin_panel_settings',
+      link: NAMESROUTES.APP_USER_CLIENT_LIST,
     });
   if (
     revisarPermisosRouter(
@@ -52,37 +64,11 @@ if (
   )
     essentialLinks.push({
       title: 'Roles',
-      caption: 'Descripcion del módulo de roles',
+      caption: 'Roles con permisos asociadas',
       icon: 'add_moderator',
       link: NAMESROUTES.APP_ROLE_LIST,
     });
 }
-
-if (
-  revisarPermisosRouter(
-    NAMESROUTES.APP_CLIENT_LIST,
-    userStore.getProfile.listPermits
-  )
-)
-  essentialLinks.push({
-    title: 'Clientes',
-    caption: 'Descripcion del módulo de clientes',
-    icon: 'add_moderator',
-    link: NAMESROUTES.APP_CLIENT_LIST,
-  });
-
-if (
-  revisarPermisosRouter(
-    NAMESROUTES.APP_PRODUCT_LIST,
-    userStore.getProfile.listPermits
-  )
-)
-  essentialLinks.push({
-    title: 'Productos',
-    caption: 'Descripcion del módulo de productos',
-    icon: 'add_moderator',
-    link: NAMESROUTES.APP_PRODUCT_LIST,
-  });
 
 if (
   userStore.getProfile.authorities.find(
@@ -95,7 +81,55 @@ if (
     icon: 'front_hand',
     link: NAMESROUTES.APP_PERMISION_LIST,
   });
+  essentialLinks.push({
+    title: 'División',
+    icon: 'approval',
+    link: NAMESROUTES.APP_DIVISION_LIST,
+  });
+  essentialLinks.push({
+    title: 'Empresas',
+    icon: 'gite',
+    link: NAMESROUTES.APP_COMPANY_LIST,
+  });
+  essentialLinks.push({
+    title: 'Casas Matrices',
+    icon: 'cabin',
+    link: NAMESROUTES.APP_MATRIX_LIST,
+  });
 }
+
+if (
+  revisarPermisosRouter(
+    NAMESROUTES.APP_CLIENT_LIST,
+    userStore.getProfile.listPermits
+  )
+)
+  essentialLinks.push({
+    title: 'Clientes',
+    caption: 'Clientes asociados a las demandas',
+    icon: 'engineering',
+    link: NAMESROUTES.APP_CLIENT_LIST,
+  });
+
+if (
+  revisarPermisosRouter(
+    NAMESROUTES.APP_PRODUCT_LIST,
+    userStore.getProfile.listPermits
+  )
+)
+  essentialLinks.push({
+    title: 'Productos',
+    caption: 'Productos para la confección de demandas',
+    icon: 'inventory',
+    link: NAMESROUTES.APP_PRODUCT_LIST,
+  });
+
+essentialLinks.push({
+  title: 'Atención Demandas',
+  caption: 'Demandas confeccionadas por clientes',
+  icon: 'paid',
+  link: NAMESROUTES.APP_DEMAND_LIST,
+});
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;

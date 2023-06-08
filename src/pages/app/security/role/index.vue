@@ -33,6 +33,7 @@ if (permisionStore.havePermision('updateById', ENTITY.ROL))
     action: ACTIONS.edit,
     color: 'grey',
     text_color: 'white',
+    tooltip: 'Editar',
     icon: 'edit_note',
   });
 if (permisionStore.havePermision('deleteById', ENTITY.ROL))
@@ -40,6 +41,7 @@ if (permisionStore.havePermision('deleteById', ENTITY.ROL))
     action: ACTIONS.delete,
     color: 'primary',
     text_color: 'white',
+    tooltip: 'Eliminar',
     icon: 'delete',
   });
 

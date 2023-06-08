@@ -6,13 +6,16 @@ import { ACTIONS } from 'src/common/enum/actions';
 import { ButtonAction } from 'src/common/interface/util';
 import { useRouter } from 'vue-router';
 import promiseDialog from 'src/services/promiseDialog';
-import { deleteByIdUser, getAllUser } from 'src/services/external/user';
+import {
+  deleteByIdUserClient,
+  getAllUserClient,
+} from 'src/services/external/userClient';
 import { maskObject } from 'src/services/util';
-import { UserResponse } from 'src/services/external/userDTO';
 import { ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
 import { Mask } from 'src/services/external/utilDTO';
 import { usePermisionStore } from 'src/stores/permision-store';
 import { useLoadingStore } from 'src/stores/loading-store';
+import { UserClientResponse } from 'src/services/external/userClientDTO';
 
 // USE GENERAL
 const router = useRouter();
@@ -50,7 +53,7 @@ async function eliminar(payload: any) {
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdUser(row['pkPerson']);
+    const resp = await deleteByIdUserClient(row['pkUser']);
     if (resp.status == 200) {
       await listarUsuarios();
       Notify.create({
@@ -72,27 +75,25 @@ async function eliminar(payload: any) {
 function editar(payload: any) {
   const { row } = payload;
   router.push({
-    name: NAMESROUTES.APP_USER_WRITE,
-    query: { mode: 'edit', payload: row['pkPerson'] },
+    name: NAMESROUTES.APP_USER_CLIENT_WRITE,
+    query: { mode: 'edit', payload: row['pkUser'] },
   });
 }
 
 async function listarUsuarios() {
-  const resp = await getAllUser();
+  const resp = await getAllUserClient();
   if (resp.status == 200) {
-    const mask: Mask<UserResponse> = {
-      namePerson: 'nombre',
-      firstLastNamePerson: 'primer_apellido',
-      secondLastNamePerson: 'segundo_apellido',
-      usernamePerson: 'usuario',
-      emailPerson: 'correo',
-      activePerson: 'estado',
-      identityCardPerson: 'identityCardPerson',
-      genderPerson: 'genderPerson',
-      passwordPerson: 'passwordPerson',
-      pkPerson: 'pkPerson',
+    const mask: Mask<UserClientResponse> = {
+      nameUser: 'nombre',
+      usernameUser: 'usuario',
+      phoneUser: 'teléfono',
+      emailUser: 'correo',
+      companyUser: 'empresa',
+      activeUser: 'estado',
+      identityCardUser: 'identityCardUser',
+      pkUser: 'pkUser',
       rols: 'rols',
-      provincePerson: 'provincePerson',
+      provinceUser: 'provinceUser',
     };
     if (resp.payload != null) {
       const re = resp.payload.map((item: any) => maskObject(item, mask));
@@ -112,33 +113,16 @@ onMounted(async () => {
 <template>
   <q-page class="row">
     <div class="col s12">
-      <div class="q-pa-md q-gutter-sm">
-        <q-btn
-          v-if="permisionStore.havePermision('create', ENTITY.USUARIO)"
-          color="primary"
-          label="Adicionar"
-          :to="{ name: NAMESROUTES.APP_USER_WRITE, query: { mode: 'add' } }"
-        />
-      </div>
-
       <table-component
         v-if="permisionStore.havePermision('listAll', ENTITY.USUARIO)"
         :key="refresh"
-        title="Usuarios internos"
+        title="Usuarios externos"
         :data="seed"
         option="nombre"
         :actions="actions"
         @edit="editar"
         @delete="eliminar"
-        :hide="[
-          'pkPerson',
-          'passwordPerson',
-          'rols',
-          'genderPerson',
-          'identityCardPerson',
-          'provincePerson',
-          'index',
-        ]"
+        :hide="['pkUser', 'rols', 'identityCardUser', 'provinceUser', 'index']"
       >
       </table-component>
     </div>

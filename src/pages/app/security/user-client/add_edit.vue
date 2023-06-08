@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Notify } from 'quasar';
 import { SelectField } from 'src/common/interface/util';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   newEmailIsValid,
@@ -15,19 +15,31 @@ import {
   UserCreateRequest,
   UserUpdateRequest,
   GENDER,
-  ProvinceResponse,
 } from 'src/services/external/userDTO';
 import {
   getByIdUser,
   createUser,
   updateUser,
 } from 'src/services/external/user';
-import { getAllProvinces } from 'src/services/external/nomenclador';
+import { getAllProvinces } from 'src/services/external/nomenclator/province';
 import { NAMESROUTES } from 'src/services/external/permisionDTO';
+import { useLoadingStore } from 'src/stores/loading-store';
+import { getAllDivision } from 'src/services/external/nomenclator/division';
+import { DivisionShort } from 'src/services/external/nomenclator/divisionDTO';
+import { ProvinceResponse } from 'src/services/external/nomenclator/provinceDTO';
+import {
+  UserClientCreateRequest,
+  UserClientUpdateRequest,
+} from 'src/services/external/userClientDTO';
+import {
+  getByIdUserClient,
+  updateUserClient,
+} from 'src/services/external/userClient';
 
 // USE GENERAL
 const route = useRoute();
 const router = useRouter();
+const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const mode = ref<string>('add');
@@ -38,7 +50,6 @@ const title = ref<string>('');
 const nombre = ref<string>('');
 const apellido1 = ref<string>('');
 const apellido2 = ref<string>('');
-const genero = ref<GENDER>(GENDER.M);
 const correo = ref<string>('');
 const ci = ref<string>('');
 const status = ref<boolean>(true);
@@ -56,10 +67,7 @@ const changepass = ref<boolean>(true);
 const roles = ref<SelectField[]>([]);
 const provinces = ref<SelectField[]>([]);
 const provincesOptions = ref<SelectField[]>([]);
-const generos = ref<SelectField[]>([
-  { label: 'Masculino', value: GENDER.M },
-  { label: 'Femenino', value: GENDER.F },
-]);
+
 // END FORM HELP
 // END FORM
 
@@ -67,13 +75,12 @@ const generos = ref<SelectField[]>([
 async function onSubmit() {
   if (mode.value == 'add') {
     if (province.value != null) {
-      const payload: UserCreateRequest = {
+      const payload: UserClientCreateRequest = {
         namePerson: nombre.value.trim(),
         activePerson: status.value,
         emailPerson: correo.value.trim(),
         firstLastNamePerson: apellido1.value.trim(),
         secondLastNamePerson: apellido2.value.trim(),
-        genderPerson: genero.value,
         identityCardPerson: ci.value.trim(),
         passwordPerson: password.value,
         rols: role.value,
@@ -84,12 +91,12 @@ async function onSubmit() {
       console.log(resp);
       if (resp.status == 200) {
         Notify.create({
-          message: `Correcto, usuario creado satisfactoria!`,
+          message: 'Correcto, usuario creado satisfactoria!',
           textColor: 'white',
           color: 'green',
           position: 'top-right',
         });
-        router.push({ name: NAMESROUTES.APP_PRODUCT_LIST });
+        router.push({ name: NAMESROUTES.APP_USER_CLIENT_LIST });
       } else {
         Notify.create({
           message: resp.error,
@@ -106,29 +113,28 @@ async function onSubmit() {
         }
       : {};
     if (province.value != null) {
-      const payload: UserUpdateRequest = {
-        namePerson: nombre.value.trim(),
-        activePerson: status.value,
-        emailPerson: correo.value.trim(),
-        firstLastNamePerson: apellido1.value.trim(),
-        secondLastNamePerson: apellido2.value.trim(),
-        genderPerson: genero.value,
-        identityCardPerson: ci.value.trim(),
+      const payload: UserClientUpdateRequest = {
+        nameUser: nombre.value.trim(),
+        activeUser: status.value,
+        emailUser: correo.value.trim(),
+        companyUser: apellido1.value.trim(),
+        phoneUser: apellido2.value.trim(),
+        identityCardUser: ci.value.trim(),
         ...pass,
         rols: role.value,
-        usernamePerson: usuario.value.trim(),
-        provincePerson: province.value.value,
+        usernameUser: usuario.value.trim(),
+        provinceUser: province.value.value,
       };
-      const resp = await updateUser(id.value, payload);
+      const resp = await updateUserClient(id.value, payload);
       console.log(resp);
       if (resp.status == 200) {
         Notify.create({
-          message: `Correcto, usuario actualizado satisfactoria!`,
+          message: 'Correcto, usuario actualizado satisfactoria!',
           textColor: 'white',
           color: 'green',
           position: 'top-right',
         });
-        router.push({ name: NAMESROUTES.APP_PRODUCT_LIST });
+        router.push({ name: NAMESROUTES.APP_USER_CLIENT_LIST });
       } else {
         Notify.create({
           message: resp.error,
@@ -143,12 +149,12 @@ async function onSubmit() {
 
 function onReset() {
   Notify.create({
-    message: `Info, operación abortada!`,
+    message: 'Info, operación abortada!',
     textColor: 'white',
     color: 'blue',
     position: 'top-right',
   });
-  router.push({ name: NAMESROUTES.APP_PRODUCT_LIST });
+  router.push({ name: NAMESROUTES.APP_USER_CLIENT_LIST });
 }
 
 const filterFnProv = (val: string, update: any) => {
@@ -185,6 +191,8 @@ const validatePass = (pass: string) => {
 // END METHODS FORM
 
 onMounted(async () => {
+  loadingStore.active();
+
   let obj_roles = await getAllRole();
   let role_prepared: SelectField[] = [];
   if (obj_roles.status == 200) {
@@ -212,35 +220,33 @@ onMounted(async () => {
 
   mode.value = route.query?.mode ? route.query?.mode.toString() : 'add';
   if (mode.value == 'add') {
-    title.value = 'Adicionar usuario';
+    title.value = 'Adicionar usuario externo';
   } else {
-    title.value = 'Modificar usuario';
+    title.value = 'Modificar usuario externo';
     id.value = route.query?.payload ? route.query?.payload.toString() : null;
     if (id.value != null) {
-      const recuperate = await getByIdUser(id.value);
+      const recuperate = await getByIdUserClient(id.value);
+      console.log(recuperate);
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
-          nombre.value = payload.user.namePerson;
-          apellido1.value = payload.user.firstLastNamePerson;
-          apellido2.value = payload.user.secondLastNamePerson;
-          correo.value = payload.user.emailPerson;
-          ci.value = payload.user.identityCardPerson;
-          status.value = payload.user.activePerson;
-          usuario.value = payload.user.usernamePerson;
-          genero.value = payload.user.genderPerson;
-          const traspaso: string[] = payload.user.rols.map(
-            (rolid: RoleResponse) => rolid.pkRol
+          nombre.value = payload.user.nameUser;
+          apellido1.value = payload.user.companyUser;
+          apellido2.value = payload.user.phoneUser;
+          correo.value = payload.user.emailUser;
+          ci.value = payload.user.identityCardUser;
+          status.value = payload.user.activeUser;
+          usuario.value = payload.user.usernameUser;
+          role.value = payload.user.rols.map((it) => it.pkRol);
+          const provFinded = provinces.value.find(
+            (it) => it.value == payload.province.provinceID
           );
-          role.value = traspaso;
-          province.value = {
-            label: payload.province.provinceName,
-            value: payload.province.provinceID,
-          };
+          province.value = provFinded ? provFinded : null;
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
   }
+  loadingStore.inactive();
 });
 </script>
 <template>
@@ -300,13 +306,32 @@ onMounted(async () => {
             />
           </div>
           <div class="col-3 q-pa-sm">
-            <div class="q-gutter-sm">
-              <q-option-group
-                :options="generos"
-                type="radio"
-                v-model="genero"
-              />
-            </div>
+            <q-select
+              dense
+              outlined
+              transition-show="scale"
+              transition-hide="scale"
+              v-model="province"
+              use-input
+              input-debounce="0"
+              label="Provincia *"
+              hint="tu provincia aqui"
+              :options="provinces"
+              @filter="filterFnProv"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val != null) || 'Por favor selecciona una provincia',
+              ]"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No resultados
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
         </div>
 
@@ -332,6 +357,7 @@ onMounted(async () => {
               dense
               outlined
               v-model="ci"
+              mask="###########"
               label="CI *"
               hint="tu carnet de identidad"
               lazy-rules
@@ -360,18 +386,49 @@ onMounted(async () => {
               ]"
             />
           </div>
+
           <div class="col-3 q-pa-sm">
-            <q-toggle
-              v-if="mode == 'edit'"
-              v-model="changepass"
-              color="primary"
-              label="Cambiar Contraseña"
-              @update:model-value="refresh++"
-            />
+            <q-checkbox v-model="status" label="Activo" />
           </div>
         </div>
 
         <div class="row">
+          <div class="col-3 q-pa-sm">
+            <q-select
+              outlined
+              dense
+              v-model="role"
+              multiple
+              :options="roles"
+              use-chips
+              hint="seleccione uno o varios roles"
+              label="Roles"
+              emit-value
+              map-options
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val.length > 0) || 'Por favor selecciona algun rol',
+              ]"
+            >
+              <template
+                v-slot:option="{ itemProps, opt, selected, toggleOption }"
+              >
+                <q-item v-bind="itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ opt.label }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-toggle
+                      :model-value="selected"
+                      @update:model-value="toggleOption(opt)"
+                    />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
           <div class="col-3 q-pa-sm">
             <q-input
               v-if="mode == 'add' || changepass"
@@ -429,73 +486,15 @@ onMounted(async () => {
               </template>
             </q-input>
           </div>
+
           <div class="col-3 q-pa-sm">
-            <q-select
-              outlined
-              dense
-              v-model="role"
-              multiple
-              :options="roles"
-              use-chips
-              hint="seleccione uno o varios roles"
-              label="Roles"
-              emit-value
-              map-options
-              lazy-rules
-              :rules="[
-                (val) =>
-                  (val && val.length > 0) || 'Por favor selecciona algun rol',
-              ]"
-            >
-              <template
-                v-slot:option="{ itemProps, opt, selected, toggleOption }"
-              >
-                <q-item v-bind="itemProps">
-                  <q-item-section>
-                    <q-item-label>{{ opt.label }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-toggle
-                      :model-value="selected"
-                      @update:model-value="toggleOption(opt)"
-                    />
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-          <div class="col-3 q-pa-sm">
-            <q-checkbox v-model="status" label="Activo" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3 q-pa-sm">
-            <q-select
-              dense
-              outlined
-              transition-show="scale"
-              transition-hide="scale"
-              v-model="province"
-              use-input
-              input-debounce="0"
-              label="Provincia *"
-              hint="tu provincia aqui"
-              :options="provinces"
-              @filter="filterFnProv"
-              lazy-rules
-              :rules="[
-                (val) =>
-                  (val && val != null) || 'Por favor selecciona una provincia',
-              ]"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No resultados
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+            <q-toggle
+              v-if="mode == 'edit'"
+              v-model="changepass"
+              color="primary"
+              label="Cambiar Contraseña"
+              @update:model-value="refresh++"
+            />
           </div>
         </div>
 

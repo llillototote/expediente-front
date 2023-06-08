@@ -1,8 +1,13 @@
-import { ACTIONS } from "../enum/actions";
+import { ACTIONS } from '../enum/actions';
 
 export interface SelectField {
   label: string;
   value: string;
+}
+
+interface DisabledButtonCriteria {
+  field: string;
+  value: any[];
 }
 
 export interface ButtonAction {
@@ -10,7 +15,9 @@ export interface ButtonAction {
   icon?: string;
   color?: string;
   text_color?: string;
+  tooltip?: string;
   action: ACTIONS;
+  disabledCriteria?: DisabledButtonCriteria;
 }
 
 export interface ResponseExternal<T> {

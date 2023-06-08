@@ -90,11 +90,13 @@ export function preloadResponseExternal<T>(response: any): ResponseExternal<T> {
     } as ResponseExternal<T>
 
   } else if (response.response) {
+    console.log('response')
+    console.log(response.response)
     if (response.response.data) {
       return {
         payload: null,
         status: response.response.status,
-        error: response.response.data.message
+        error: (typeof response.response.data === 'string') ? response.response.data : response.response.data?.message
       } as ResponseExternal<T>
     } else
       return {

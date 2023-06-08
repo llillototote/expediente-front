@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Notify } from 'quasar';
 import { SelectField } from 'src/common/interface/util';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   newEmailIsValid,
@@ -15,16 +15,18 @@ import {
   UserCreateRequest,
   UserUpdateRequest,
   GENDER,
-  ProvinceResponse,
 } from 'src/services/external/userDTO';
 import {
   getByIdUser,
   createUser,
   updateUser,
 } from 'src/services/external/user';
-import { getAllProvinces } from 'src/services/external/nomenclador';
+import { getAllProvinces } from 'src/services/external/nomenclator/province';
 import { NAMESROUTES } from 'src/services/external/permisionDTO';
 import { useLoadingStore } from 'src/stores/loading-store';
+import { getAllDivision } from 'src/services/external/nomenclator/division';
+import { DivisionShort } from 'src/services/external/nomenclator/divisionDTO';
+import { ProvinceResponse } from 'src/services/external/nomenclator/provinceDTO';
 
 // USE GENERAL
 const route = useRoute();
@@ -48,6 +50,7 @@ const usuario = ref<string>('');
 const password = ref<string>('');
 const role = ref<string[]>([]);
 const province = ref<SelectField | null>(null);
+const division = ref<SelectField | null>(null);
 
 // FORM HELP
 const repassword = ref<string>('');
@@ -58,12 +61,18 @@ const changepass = ref<boolean>(true);
 const roles = ref<SelectField[]>([]);
 const provinces = ref<SelectField[]>([]);
 const provincesOptions = ref<SelectField[]>([]);
+
+const divisionsData = ref<DivisionShort[]>([]);
+const divisions = ref<SelectField[]>([]);
+
 const generos = ref<SelectField[]>([
   { label: 'Masculino', value: GENDER.M },
   { label: 'Femenino', value: GENDER.F },
 ]);
 // END FORM HELP
 // END FORM
+
+watch(province, (newvalue) => cleanAndFilterDivisions(newvalue));
 
 // METHODS FORM
 async function onSubmit() {
@@ -184,10 +193,34 @@ const validatePass = (pass: string) => {
   return flag;
 };
 
+const cleanAndFilterDivisions = (province: SelectField | null) => {
+  if (province != null) {
+    const divisionsBrute: DivisionShort[] = divisionsData.value.filter(
+      (it) => it.province == province.value
+    );
+    const divisions_prepared = prepareToSelect(
+      divisionsBrute,
+      'nameterritorial',
+      'pkTerritorial'
+    );
+    divisions.value = divisions_prepared;
+    division.value = null;
+  }
+};
+
+const getAllDivisions = async () => {
+  const resp = await getAllDivision();
+  if (resp.status === 200 && resp.payload != null)
+    divisionsData.value = resp.payload;
+};
+
 // END METHODS FORM
 
 onMounted(async () => {
   loadingStore.active();
+
+  await getAllDivisions();
+
   let obj_roles = await getAllRole();
   let role_prepared: SelectField[] = [];
   if (obj_roles.status == 200) {
@@ -240,6 +273,8 @@ onMounted(async () => {
             label: payload.province.provinceName,
             value: payload.province.provinceID,
           };
+
+          cleanAndFilterDivisions(province.value);
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
@@ -491,6 +526,34 @@ onMounted(async () => {
               :rules="[
                 (val) =>
                   (val && val != null) || 'Por favor selecciona una provincia',
+              ]"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No resultados
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
+          <div class="col-3 q-pa-sm">
+            <q-select
+              dense
+              outlined
+              transition-show="scale"
+              transition-hide="scale"
+              v-model="division"
+              use-input
+              input-debounce="0"
+              label="División *"
+              hint="tu división aqui"
+              :options="divisions"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val != null) || 'Por favor selecciona una división',
               ]"
             >
               <template v-slot:no-option>

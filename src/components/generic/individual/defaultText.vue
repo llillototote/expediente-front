@@ -1,0 +1,16 @@
+<script lang="ts" setup>
+import { ref } from 'vue';
+export interface CheckBoxProps {
+  value?: string | number;
+}
+const props = withDefaults(defineProps<CheckBoxProps>(), {
+  value: '',
+});
+
+const value = ref(props.value);
+</script>
+<template>
+  <div class="q-pa-md q-gutter-sm">
+    {{ value }}
+  </div>
+</template>

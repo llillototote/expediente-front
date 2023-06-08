@@ -11,13 +11,7 @@ const routes: RouteRecordRaw[] = [
         name: NAMESROUTES.LOGIN,
         component: () => import('pages/access/login.vue'),
         meta: { transition_enter: 'animated fadeInRight', transition_leave: 'animated fadeOut' }
-      }/*,
-      {
-        path: '/signup',
-        name: NAMESROUTES.REGISTER,
-        component: () => import('pages/access/register.vue'),
-        meta: { transition_enter: 'animated fadeInLeft', transition_leave: 'animated fadeOut' }
-      },*/
+      }
     ],
   },
   {
@@ -28,6 +22,36 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: NAMESROUTES.APP_HOME,
         component: () => import('pages/app/home/index.vue')
+      },
+      {
+        path: 'division',
+        name: NAMESROUTES.APP_DIVISION_LIST,
+        component: () => import('pages/app/nomenclator/division/index.vue')
+      },
+      {
+        path: 'division/write',
+        name: NAMESROUTES.APP_DIVISION_WRITE,
+        component: () => import('pages/app/nomenclator/division/add_edit.vue')
+      },
+      {
+        path: 'company',
+        name: NAMESROUTES.APP_COMPANY_LIST,
+        component: () => import('pages/app/nomenclator/company/index.vue')
+      },
+      {
+        path: 'company/write',
+        name: NAMESROUTES.APP_COMPANY_WRITE,
+        component: () => import('pages/app/nomenclator/company/add_edit.vue')
+      },
+      {
+        path: 'matrix',
+        name: NAMESROUTES.APP_MATRIX_LIST,
+        component: () => import('pages/app/nomenclator/matrixHouse/index.vue')
+      },
+      {
+        path: 'matrix/write',
+        name: NAMESROUTES.APP_MATRIX_WRITE,
+        component: () => import('pages/app/nomenclator/matrixHouse/add_edit.vue')
       },
       {
         path: 'role',
@@ -50,6 +74,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/app/security/user/add_edit.vue')
       },
       {
+        path: 'user-client',
+        name: NAMESROUTES.APP_USER_CLIENT_LIST,
+        component: () => import('pages/app/security/user-client/index.vue')
+      },
+      {
+        path: 'user-client/write',
+        name: NAMESROUTES.APP_USER_CLIENT_WRITE,
+        component: () => import('pages/app/security/user-client/add_edit.vue')
+      },
+      {
         path: 'permision',
         name: NAMESROUTES.APP_PERMISION_LIST,
         component: () => import('pages/app/security/permision/index.vue')
@@ -58,22 +92,33 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'client',
         name: NAMESROUTES.APP_CLIENT_LIST,
-        component: () => import('pages/app/demand/client/index.vue')
+        component: () => import('pages/app/nomenclator/client/index.vue')
       },
       {
         path: 'client/write',
         name: NAMESROUTES.APP_CLIENT_WRITE,
-        component: () => import('pages/app/demand/client/add_edit.vue')
+        component: () => import('pages/app/nomenclator/client/add_edit.vue')
       },
       {
         path: 'product',
         name: NAMESROUTES.APP_PRODUCT_LIST,
-        component: () => import('pages/app/demand/product/index.vue')
+        component: () => import('pages/app/nomenclator/product/index.vue')
       },
       {
         path: 'product/write',
         name: NAMESROUTES.APP_PRODUCT_WRITE,
-        component: () => import('pages/app/demand/product/add_edit.vue')
+        component: () => import('pages/app/nomenclator/product/add_edit.vue')
+      },
+      // DEMAND
+      {
+        path: 'demand',
+        name: NAMESROUTES.APP_DEMAND_LIST,
+        component: () => import('pages/app/demand/atention/index.vue')
+      },
+      {
+        path: 'demand/atent',
+        name: NAMESROUTES.APP_ATENT_DEMAND,
+        component: () => import('pages/app/demand/atention/atention.vue')
       },
     ],
   },
