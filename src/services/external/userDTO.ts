@@ -1,3 +1,4 @@
+import { ProvinceResponse } from './nomenclator/provinceDTO';
 import { CODES } from './permisionDTO';
 import { RoleResponse } from './roleDTO';
 
@@ -42,12 +43,6 @@ export type UserResponse = {
     rols: string[];
     activePerson: boolean;
     provincePerson: string;
-}
-
-export type ProvinceResponse = {
-    provinceID: string;
-    provinceName: string;
-    provinceAcronyms: string;
 }
 
 export type UserUserFindedResponse = {

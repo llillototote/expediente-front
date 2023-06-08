@@ -33,15 +33,9 @@ if (permisionStore.havePermision('updateById', ENTITY.PRODUCTO))
     action: ACTIONS.edit,
     color: 'grey',
     text_color: 'white',
-    icon: 'edit_note',
+    tooltip: 'Clasificar',
+    icon: 'auto_fix_high',
   });
-/*if (permisionStore.havePermision('deleteById', ENTITY.PRODUCTO))
-  actions.push({
-    action: ACTIONS.delete,
-    color: 'primary',
-    text_color: 'white',
-    icon: 'delete',
-  });*/
 
 const refresh = ref(0);
 const uploader = ref(null);
@@ -49,23 +43,23 @@ const uploader = ref(null);
 async function eliminar(payload: any) {
   const { row } = payload;
   let desicion = await promiseDialog.confirm(
-    `Quieres eliminar el usuario`,
+    'Quieres eliminar el usuario',
     `Estás seguro que deseas eliminar el producto ${row['nombre']} ?`,
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdUser(row['pkPerson']);
+    const resp = await deleteByIdUser(row['idProduct']);
     if (resp.status == 200) {
       await listarProductos();
       Notify.create({
-        message: `Info, producto eliminado satisfactoriamente!`,
+        message: 'Info, producto eliminado satisfactoriamente!',
         textColor: 'white',
         color: 'blue',
         position: 'top-right',
       });
     } else
       Notify.create({
-        message: `Advertencia, No se pudo eliminar el producto!`,
+        message: 'Advertencia, No se pudo eliminar el producto!',
         textColor: 'white',
         color: 'warning',
         position: 'top-right',
@@ -77,7 +71,7 @@ function editar(payload: any) {
   const { row } = payload;
   router.push({
     name: NAMESROUTES.APP_PRODUCT_WRITE,
-    query: { mode: 'edit', payload: row['pkPerson'] },
+    query: { mode: 'edit', payload: row['idProduct'] },
   });
 }
 
@@ -93,6 +87,8 @@ async function listarProductos() {
       priceCUPProduct: 'CUP',
       priceMLCProduct: 'MLC',
       umProduct: 'um',
+      disabledProduct: 'desabilitado',
+      privateProduct: 'confidencial',
     };
     if (resp.payload != null) {
       const re = resp.payload.map((item: any) => maskObject(item, mask));
@@ -113,7 +109,7 @@ async function factoryFn(files: any, updateProgress: any) {
   console.log(resp);
   if (resp.status == 200) {
     Notify.create({
-      message: `Correcto, fichero importado satisfactoriamente!`,
+      message: 'Correcto, fichero importado satisfactoriamente!',
       textColor: 'white',
       color: 'green',
       position: 'top-right',
@@ -149,13 +145,6 @@ onMounted(async () => {
   <q-page class="row">
     <div class="col s12">
       <div class="q-pa-md q-gutter-sm">
-        <!--<q-btn
-          v-if="permisionStore.havePermision('create', ENTITY.PRODUCTO)"
-          color="primary"
-          label="Adicionar"
-          :to="{ name: NAMESROUTES.APP_PRODUCT_WRITE, query: { mode: 'add' } }"
-        />-->
-
         <q-uploader
           style="max-width: 300px"
           :factory="factoryFn"

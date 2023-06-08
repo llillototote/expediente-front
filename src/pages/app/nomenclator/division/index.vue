@@ -6,13 +6,16 @@ import { ACTIONS } from 'src/common/enum/actions';
 import { ButtonAction } from 'src/common/interface/util';
 import { useRouter } from 'vue-router';
 import promiseDialog from 'src/services/promiseDialog';
-import { deleteByIdUser, getAllUser } from 'src/services/external/user';
 import { maskObject } from 'src/services/util';
-import { UserResponse } from 'src/services/external/userDTO';
 import { ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
 import { Mask } from 'src/services/external/utilDTO';
 import { usePermisionStore } from 'src/stores/permision-store';
 import { useLoadingStore } from 'src/stores/loading-store';
+import {
+  deleteByIdDivision,
+  getAllDivision,
+} from 'src/services/external/nomenclator/division';
+import { DivisionShort } from 'src/services/external/nomenclator/divisionDTO';
 
 // USE GENERAL
 const router = useRouter();
@@ -45,23 +48,23 @@ const refresh = ref(0);
 async function eliminar(payload: any) {
   const { row } = payload;
   let desicion = await promiseDialog.confirm(
-    'Quieres eliminar el usuario',
-    `Estás seguro que deseas eliminar el usuario ${row['nombre']} ?`,
+    'Quieres eliminar la división',
+    `Estás seguro que deseas eliminar la división ${row['division']} ?`,
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdUser(row['pkPerson']);
+    const resp = await deleteByIdDivision(row['pkTerritorialDivision']);
     if (resp.status == 200) {
-      await listarUsuarios();
+      await listarDivisiones();
       Notify.create({
-        message: 'Info, usuario eliminado satisfactoriamente!',
+        message: 'Info, división eliminado satisfactoriamente!',
         textColor: 'white',
         color: 'blue',
         position: 'top-right',
       });
     } else
       Notify.create({
-        message: 'Advertencia, No se pudo eliminar el usuario!',
+        message: 'Advertencia, No se pudo eliminar el división!',
         textColor: 'white',
         color: 'warning',
         position: 'top-right',
@@ -72,27 +75,19 @@ async function eliminar(payload: any) {
 function editar(payload: any) {
   const { row } = payload;
   router.push({
-    name: NAMESROUTES.APP_USER_WRITE,
-    query: { mode: 'edit', payload: row['pkPerson'] },
+    name: NAMESROUTES.APP_DIVISION_WRITE,
+    query: { mode: 'edit', payload: row['pkTerritorialDivision'] },
   });
 }
 
-async function listarUsuarios() {
-  const resp = await getAllUser();
+async function listarDivisiones() {
+  const resp = await getAllDivision();
   if (resp.status == 200) {
-    const mask: Mask<UserResponse> = {
-      namePerson: 'nombre',
-      firstLastNamePerson: 'primer_apellido',
-      secondLastNamePerson: 'segundo_apellido',
-      usernamePerson: 'usuario',
-      emailPerson: 'correo',
-      activePerson: 'estado',
-      identityCardPerson: 'identityCardPerson',
-      genderPerson: 'genderPerson',
-      passwordPerson: 'passwordPerson',
-      pkPerson: 'pkPerson',
-      rols: 'rols',
-      provincePerson: 'provincePerson',
+    const mask: Mask<DivisionShort> = {
+      pkTerritorialDivision: 'pkTerritorialDivision',
+      fkProvince: 'provincia',
+      nameTerritorial: 'division',
+      descriptionTerritorialDivision: 'descripcion',
     };
     if (resp.payload != null) {
       const re = resp.payload.map((item: any) => maskObject(item, mask));
@@ -105,7 +100,7 @@ async function listarUsuarios() {
 
 onMounted(async () => {
   loadingStore.active();
-  await listarUsuarios();
+  await listarDivisiones();
   loadingStore.inactive();
 });
 </script>
@@ -117,28 +112,19 @@ onMounted(async () => {
           v-if="permisionStore.havePermision('create', ENTITY.USUARIO)"
           color="primary"
           label="Adicionar"
-          :to="{ name: NAMESROUTES.APP_USER_WRITE, query: { mode: 'add' } }"
+          :to="{ name: NAMESROUTES.APP_DIVISION_WRITE, query: { mode: 'add' } }"
         />
       </div>
 
       <table-component
-        v-if="permisionStore.havePermision('listAll', ENTITY.USUARIO)"
         :key="refresh"
-        title="Usuarios internos"
+        title="Divisiones"
         :data="seed"
-        option="nombre"
+        option="name"
         :actions="actions"
         @edit="editar"
         @delete="eliminar"
-        :hide="[
-          'pkPerson',
-          'passwordPerson',
-          'rols',
-          'genderPerson',
-          'identityCardPerson',
-          'provincePerson',
-          'index',
-        ]"
+        :hide="['pkTerritorialDivision', 'index']"
       >
       </table-component>
     </div>
