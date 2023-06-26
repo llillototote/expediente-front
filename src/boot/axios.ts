@@ -25,13 +25,28 @@ const api = axios.create({
   baseURL: `${SCHEMA}://${BACKEND_IP}:${BACKEND_PORT}/api/v1`
 });
 
+const apiDownload = axios.create({
+  baseURL: `${SCHEMA}://${BACKEND_IP}:${BACKEND_PORT}/api/v1`
+});
+
 const userStore = useUserStore()
 //api.defaults.headers.common['Authorization'] = `Bearer ${userStore.getProfile.token}`;
 // Add a request interceptor
 api.interceptors.request.use(function (config) {
   // Do something before request is sent
   //console.log(userStore.getProfile.token);
-  userStore.getProfile.token != "" ? config.headers.Authorization = `Bearer ${userStore.getProfile.token}` : "";
+  userStore.getProfile.token != '' ? config.headers.Authorization = `Bearer ${userStore.getProfile.token}` : '';
+
+  return config;
+}, function (error) {
+  // Do something with request error
+  return Promise.reject(error);
+});
+
+apiDownload.interceptors.request.use(function (config) {
+  // Do something before request is sent
+  //console.log(userStore.getProfile.token);
+  userStore.getProfile.token != '' ? config.headers.Authorization = `Bearer ${userStore.getProfile.token}` : '';
 
   return config;
 }, function (error) {
@@ -76,15 +91,15 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 });
 
-export { api };
+export { api, apiDownload };
 
 function instanceOfInterface<T>(data: any): data is T {
   console.log(data)
-  console.log("is null", data === null)
-  console.log("is array", Array.isArray(data))
-  console.log("is object", typeof data === "object")
+  console.log('is null', data === null)
+  console.log('is array', Array.isArray(data))
+  console.log('is object', typeof data === 'object')
 
-  if (!Array.isArray(data) && typeof data === "object" && data !== null) //Is Object
+  if (!Array.isArray(data) && typeof data === 'object' && data !== null) //Is Object
   {
     Object.keys(data).forEach(key => {
       console.log(key)

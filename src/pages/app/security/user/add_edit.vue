@@ -27,6 +27,8 @@ import { useLoadingStore } from 'src/stores/loading-store';
 import { getAllDivision } from 'src/services/external/nomenclator/division';
 import { DivisionShort } from 'src/services/external/nomenclator/divisionDTO';
 import { ProvinceResponse } from 'src/services/external/nomenclator/provinceDTO';
+import { getAllMatrixHouse } from 'src/services/external/nomenclator/matrixHouse';
+import { MatrixHouseResponse } from 'src/services/external/nomenclator/matrixHouseDTO';
 
 // USE GENERAL
 const route = useRoute();
@@ -51,8 +53,10 @@ const password = ref<string>('');
 const role = ref<string[]>([]);
 const province = ref<SelectField | null>(null);
 const division = ref<SelectField | null>(null);
+const matrixHouse = ref<SelectField | null>(null);
 
 // FORM HELP
+const memberDivision = ref<boolean>(true);
 const repassword = ref<string>('');
 const isPwd = ref<boolean>(true);
 const isPwdRe = ref<boolean>(true);
@@ -64,6 +68,9 @@ const provincesOptions = ref<SelectField[]>([]);
 
 const divisionsData = ref<DivisionShort[]>([]);
 const divisions = ref<SelectField[]>([]);
+
+const matrixHousesData = ref<MatrixHouseResponse[]>([]);
+const matrixHouses = ref<SelectField[]>([]);
 
 const generos = ref<SelectField[]>([
   { label: 'Masculino', value: GENDER.M },
@@ -89,7 +96,17 @@ async function onSubmit() {
         passwordPerson: password.value,
         rols: role.value,
         usernamePerson: usuario.value.trim(),
-        provincePerson: province.value.value,
+        provincePerson: province.value?.value,
+        matrixHousePerson: !memberDivision.value
+          ? matrixHouse.value
+            ? matrixHouse.value?.value
+            : ''
+          : '',
+        territorialDivisionPerson: memberDivision.value
+          ? division.value
+            ? division.value?.value
+            : ''
+          : '',
       };
       const resp = await createUser(payload);
       console.log(resp);
@@ -195,16 +212,29 @@ const validatePass = (pass: string) => {
 
 const cleanAndFilterDivisions = (province: SelectField | null) => {
   if (province != null) {
+    //prepare divisions
     const divisionsBrute: DivisionShort[] = divisionsData.value.filter(
-      (it) => it.province == province.value
+      (it) => it.fkProvince == province.value
     );
     const divisions_prepared = prepareToSelect(
       divisionsBrute,
-      'nameterritorial',
-      'pkTerritorial'
+      'nameTerritorial',
+      'pkTerritorialDivision'
     );
     divisions.value = divisions_prepared;
     division.value = null;
+    //prepare matrixHouses
+    const matrixHousesBrute: MatrixHouseResponse[] =
+      matrixHousesData.value.filter(
+        (it) => it.provinceMatrixHouse == province.value
+      );
+    const matrixHouses_prepared = prepareToSelect(
+      matrixHousesBrute,
+      'nameHouse',
+      'pkMatrixHouse'
+    );
+    matrixHouses.value = matrixHouses_prepared;
+    matrixHouse.value = null;
   }
 };
 
@@ -214,12 +244,19 @@ const getAllDivisions = async () => {
     divisionsData.value = resp.payload;
 };
 
+const getAllMatrixHouses = async () => {
+  const resp = await getAllMatrixHouse();
+  if (resp.status === 200 && resp.payload != null)
+    matrixHousesData.value = resp.payload;
+};
+
 // END METHODS FORM
 
 onMounted(async () => {
   loadingStore.active();
 
   await getAllDivisions();
+  await getAllMatrixHouses();
 
   let obj_roles = await getAllRole();
   let role_prepared: SelectField[] = [];
@@ -254,6 +291,7 @@ onMounted(async () => {
     id.value = route.query?.payload ? route.query?.payload.toString() : null;
     if (id.value != null) {
       const recuperate = await getByIdUser(id.value);
+      console.log(recuperate.payload);
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
@@ -273,8 +311,20 @@ onMounted(async () => {
             label: payload.province.provinceName,
             value: payload.province.provinceID,
           };
+          console.log(payload.user.fkMatrixHouse);
+          memberDivision.value = payload.user.fkTerritorialDivision != null;
 
           cleanAndFilterDivisions(province.value);
+          const divisionFinded = divisions.value.find(
+            (it) => it.value == payload.user.fkTerritorialDivision
+          );
+          division.value = divisionFinded ? divisionFinded : null;
+
+          const matrixHouseFinded = matrixHouses.value.find(
+            (it) => it.value == payload.user.fkMatrixHouse
+          );
+
+          matrixHouse.value = matrixHouseFinded ? matrixHouseFinded : null;
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
@@ -538,7 +588,7 @@ onMounted(async () => {
             </q-select>
           </div>
 
-          <div class="col-3 q-pa-sm">
+          <div class="col-3 q-pa-sm" v-if="memberDivision">
             <q-select
               dense
               outlined
@@ -548,7 +598,7 @@ onMounted(async () => {
               use-input
               input-debounce="0"
               label="División *"
-              hint="tu división aqui"
+              hint="una división aqui"
               :options="divisions"
               lazy-rules
               :rules="[
@@ -564,6 +614,44 @@ onMounted(async () => {
                 </q-item>
               </template>
             </q-select>
+          </div>
+
+          <div class="col-3 q-pa-sm" v-else>
+            <q-select
+              dense
+              outlined
+              transition-show="scale"
+              transition-hide="scale"
+              v-model="matrixHouse"
+              use-input
+              input-debounce="0"
+              label="Casa Matriz *"
+              hint="una casa matriz aqui"
+              :options="matrixHouses"
+              lazy-rules
+              :rules="[
+                (val) =>
+                  (val && val != null) ||
+                  'Por favor selecciona una casa matriz',
+              ]"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No resultados
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
+          <div class="col-3 q-pa-sm">
+            <q-toggle
+              v-model="memberDivision"
+              color="primary"
+              label="División"
+              @update:model-value="refresh++"
+            />
           </div>
         </div>
 

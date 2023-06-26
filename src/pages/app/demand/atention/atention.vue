@@ -7,6 +7,8 @@ import { ButtonAction, SelectField } from 'src/common/interface/util';
 import { useRouter, useRoute } from 'vue-router';
 import {
   comprarDemand,
+  exportBuySolicitByDemand,
+  exportCotizationByDemand,
   getAllPlaceToBuy,
   getByIdDemand,
 } from 'src/services/external/demand';
@@ -189,6 +191,18 @@ const getAllPlaces = async () => {
   places.value = places_prepared;
 };
 
+const descargarSolicitud = async () => {
+  if (id.value != null) {
+    exportBuySolicitByDemand(id.value);
+  }
+};
+
+const descargarCotizacion = async () => {
+  if (id.value != null) {
+    exportCotizationByDemand(id.value);
+  }
+};
+
 onMounted(async () => {
   loadingStore.active();
   id.value = route.query?.payload ? route.query?.payload.toString() : null;
@@ -206,10 +220,21 @@ onMounted(async () => {
         <q-btn
           v-if="permisionStore.havePermision('create', ENTITY.DEMANDA)"
           color="primary"
-          label="Exportar"
+          label="Exportar solicitud"
+          @click="descargarSolicitud"
         >
-          <q-tooltip class="bg-grey">Exportar</q-tooltip>
+          <q-tooltip class="bg-grey">Exportar solicitud</q-tooltip>
         </q-btn>
+
+        <q-btn
+          v-if="permisionStore.havePermision('create', ENTITY.DEMANDA)"
+          color="primary"
+          label="Exportar cotización"
+          @click="descargarCotizacion"
+        >
+          <q-tooltip class="bg-grey">Exportar cotización</q-tooltip>
+        </q-btn>
+
         <q-btn
           v-if="permisionStore.havePermision('create', ENTITY.DEMANDA)"
           color="primary"
@@ -221,6 +246,7 @@ onMounted(async () => {
             >Las demandas seleccionadas pasan a estado de transferida</q-tooltip
           >
         </q-btn>
+
         <q-btn
           v-if="permisionStore.havePermision('create', ENTITY.DEMANDA)"
           color="primary"

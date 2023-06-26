@@ -1,6 +1,6 @@
 import { api } from 'src/boot/axios';
 import { ResponseExternal } from 'src/common/interface/util';
-import { DataLoginBasic, LoginRequest, LoginResponse, UserCreateRequest, UserFindedResponse, UserResponse, UserUpdateRequest } from './userDTO';
+import { DataLoginBasic, LoginResponse, UserCreateRequest, UserFindedResponse, UserResponse, UserUpdateRequest } from './userDTO';
 
 
 export async function login({ password, username }: DataLoginBasic): Promise<ResponseExternal<LoginResponse>> {

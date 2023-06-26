@@ -9,6 +9,7 @@ import {
   atenderDemand,
   transferirDemand,
   getAllDemandByComercial,
+  exportDemands,
 } from 'src/services/external/demand';
 import { maskObject, prepareToSelect } from 'src/services/util';
 import {
@@ -225,6 +226,10 @@ const getAllHouses = async () => {
   houses.value = houses_prepared;
 };
 
+const exportarDemandas = async () => {
+  exportDemands(dataSelected.value.map((it) => it.idDemand));
+};
+
 onMounted(async () => {
   loadingStore.active();
   await getAllDivisions();
@@ -241,7 +246,7 @@ onMounted(async () => {
           v-if="permisionStore.havePermision('create', ENTITY.DEMANDA)"
           color="primary"
           label="Exportar"
-          :to="{ name: NAMESROUTES.APP_ATENT_DEMAND, query: { mode: 'add' } }"
+          @click="exportarDemandas"
           :disable="!ican"
         >
           <q-tooltip class="bg-grey">Exportar demandas seleccionadas</q-tooltip>

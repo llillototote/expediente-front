@@ -1,6 +1,6 @@
 import { api } from 'src/boot/axios';
 import { ResponseExternal } from 'src/common/interface/util';
-import { PermisionCreateRequest, PermisionResponse, PermisionUpdateRequest } from './permisionDTO';
+import { PermisionCreateRequest, PermisionResponse } from './permisionDTO';
 
 export async function getAllPermision(): Promise<ResponseExternal<PermisionResponse[]>> {
     return await api.get('/security/permits_controller');

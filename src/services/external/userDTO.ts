@@ -43,6 +43,8 @@ export type UserResponse = {
     rols: string[];
     activePerson: boolean;
     provincePerson: string;
+    matrixHousePerson: string;
+    territorialDivisionPerson: string;
 }
 
 export type UserUserFindedResponse = {
@@ -58,6 +60,8 @@ export type UserUserFindedResponse = {
     rols: RoleResponse[];
     activePerson: boolean;
     province: ProvinceResponse;
+    fkMatrixHouse: string;
+    fkTerritorialDivision: string;
 }
 
 export type UserFindedResponse = {
