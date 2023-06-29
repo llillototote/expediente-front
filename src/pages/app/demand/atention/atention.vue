@@ -106,7 +106,7 @@ async function comprarOperation() {
         productID: it['idProduct'],
         offered: ofertado.value,
         toBuy: acomprar.value,
-        idPlaceToBuy: '',
+        idPlaceToBuy: place.value?.value,
       } as ProductForSaleDTO;
     });
   } else {
@@ -115,7 +115,7 @@ async function comprarOperation() {
         productID: whoBuy.value,
         offered: ofertado.value,
         toBuy: acomprar.value,
-        idPlaceToBuy: '',
+        idPlaceToBuy: place.value?.value,
       } as ProductForSaleDTO,
     ];
   }
