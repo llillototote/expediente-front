@@ -255,7 +255,7 @@ onMounted(async () => {
                     v-model="descripcion"
                     outlined
                     type="textarea"
-                    hint="Descripcion del alcanze del rol"
+                    hint="Descripción del alcanze del rol"
                     lazy-rules
                     :rules="[
                       (val) =>

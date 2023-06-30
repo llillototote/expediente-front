@@ -155,7 +155,7 @@ async function listarDemandas() {
   if (resp.status == 200) {
     const mask: Mask<DemandResponseOriginal> = {
       idDemand: 'idDemand',
-      codeDemand: 'codigo',
+      codeDemand: 'código',
       registeredDate: 'fecha_solicitud',
       statusDemand: 'estado',
       demandClientDTO: 'demandClientDTO',

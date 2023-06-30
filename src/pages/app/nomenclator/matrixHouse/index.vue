@@ -85,9 +85,9 @@ async function listarCasasMatrices() {
   if (resp.status == 200) {
     const mask: Mask<MatrixHouseResponse> = {
       pkMatrixHouse: 'pkMatrixHouse',
-      codeMatrixHouse: 'codigo',
+      codeMatrixHouse: 'código',
       nameHouse: 'nombre',
-      descriptionMatrixHouse: 'descripcion',
+      descriptionMatrixHouse: 'descripción',
       categoryMatrixHouse: 'categoria',
       provinceMatrixHouse: 'provincia',
       deletedHouse: 'deletedHouse',

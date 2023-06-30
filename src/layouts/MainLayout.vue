@@ -21,7 +21,7 @@ const leftDrawerOpen = ref(false);
 const essentialLinks: EssentialLinkProps[] = [
   {
     title: 'Inicio',
-    caption: 'Descripcion del módulo de inicio',
+    caption: 'Descripción del módulo de inicio',
     icon: 'home',
     link: NAMESROUTES.APP_HOME,
   },
@@ -77,7 +77,7 @@ if (
 ) {
   essentialLinks.push({
     title: 'Permisos',
-    caption: 'Descripcion del módulo de permisos',
+    caption: 'Descripción del módulo de permisos',
     icon: 'front_hand',
     link: NAMESROUTES.APP_PERMISION_LIST,
   });

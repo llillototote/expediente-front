@@ -261,8 +261,8 @@ onMounted(async () => {
               dense
               outlined
               type="textarea"
-              label="Descripcion *"
-              hint="Descripcion"
+              label="Descripción *"
+              hint="Descripción"
               lazy-rules
               :rules="[
                 (val) =>
