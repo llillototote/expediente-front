@@ -186,7 +186,7 @@ async function atenderDemandas(
   console.log(resp);
   if (resp.status == 200) {
     Notify.create({
-      message: `Info, demandas seleccionadas cambiadas al estado de ${status} satisfactoriamente!`,
+      message: `Info, demandas seleccionadas cambiadas al estado de "${status}" satisfactoriamente!`,
       textColor: 'white',
       color: 'green',
       position: 'top-right',

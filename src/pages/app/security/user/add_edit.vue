@@ -53,6 +53,7 @@ const password = ref<string>('');
 const role = ref<string[]>([]);
 const province = ref<SelectField | null>(null);
 const division = ref<SelectField | null>(null);
+const keydivision = ref<number>(0);
 const matrixHouse = ref<SelectField | null>(null);
 
 // FORM HELP
@@ -146,6 +147,16 @@ async function onSubmit() {
         rols: role.value,
         usernamePerson: usuario.value.trim(),
         provincePerson: province.value.value,
+        matrixHousePerson: !memberDivision.value
+          ? matrixHouse.value
+            ? matrixHouse.value?.value
+            : ''
+          : '',
+        territorialDivisionPerson: memberDivision.value
+          ? division.value
+            ? division.value?.value
+            : ''
+          : '',
       };
       const resp = await updateUser(id.value, payload);
       console.log(resp);
@@ -314,17 +325,23 @@ onMounted(async () => {
           console.log(payload.user.fkMatrixHouse);
           memberDivision.value = payload.user.fkTerritorialDivision != null;
 
-          cleanAndFilterDivisions(province.value);
-          const divisionFinded = divisions.value.find(
-            (it) => it.value == payload.user.fkTerritorialDivision
-          );
-          division.value = divisionFinded ? divisionFinded : null;
+          setTimeout(() => {
+            console.log([...divisions.value]);
+            console.log(payload.user.fkTerritorialDivision);
+            const divisionFinded = divisions.value.find(
+              (it) => it.value == payload.user.fkTerritorialDivision
+            );
+            if (divisionFinded) {
+              division.value = { ...divisionFinded };
+              keydivision.value = keydivision.value++;
+            }
 
-          const matrixHouseFinded = matrixHouses.value.find(
-            (it) => it.value == payload.user.fkMatrixHouse
-          );
+            const matrixHouseFinded = matrixHouses.value.find(
+              (it) => it.value == payload.user.fkMatrixHouse
+            );
 
-          matrixHouse.value = matrixHouseFinded ? matrixHouseFinded : null;
+            matrixHouse.value = matrixHouseFinded ? matrixHouseFinded : null;
+          }, 0);
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
@@ -592,6 +609,7 @@ onMounted(async () => {
             <q-select
               dense
               outlined
+              :key="keydivision"
               transition-show="scale"
               transition-hide="scale"
               v-model="division"
