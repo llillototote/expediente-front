@@ -91,9 +91,7 @@ async function factoryFn(files: any, updateProgress: any) {
     file: files[0],
   };
 
-  console.log(params);
   const resp = await uploadListClient(params);
-  console.log(resp);
   if (resp.status == 200) {
     Notify.create({
       message: 'Correcto, fichero importado satisfactoriamente!',

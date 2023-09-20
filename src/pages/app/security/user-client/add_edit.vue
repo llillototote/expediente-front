@@ -88,7 +88,7 @@ async function onSubmit() {
         provincePerson: province.value.value,
       };
       const resp = await createUser(payload);
-      console.log(resp);
+
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario creado satisfactoria!',
@@ -126,7 +126,7 @@ async function onSubmit() {
         provinceUser: province.value.value,
       };
       const resp = await updateUserClient(id.value, payload);
-      console.log(resp);
+
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario actualizado satisfactoria!',
@@ -226,7 +226,7 @@ onMounted(async () => {
     id.value = route.query?.payload ? route.query?.payload.toString() : null;
     if (id.value != null) {
       const recuperate = await getByIdUserClient(id.value);
-      console.log(recuperate);
+
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {

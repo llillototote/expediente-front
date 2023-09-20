@@ -110,7 +110,6 @@ async function listarRoles() {
 
 async function sync() {
   loadingBtn.value = true;
-  console.log('sync');
   await putRolesBindindWithUserClient(rolsSelected.value);
   loadingBtn.value = false;
 }
@@ -119,7 +118,7 @@ onMounted(async () => {
   loadingStore.active();
   await listarRoles();
   const resp = await getRolesBindindWithUserClient();
-  console.log(resp);
+
   if (resp.status == 200) {
     rolsSelected.value = resp.payload == null ? [] : resp.payload;
   } else {

@@ -55,7 +55,6 @@ async function onSubmit() {
         fkProvince: province.value.value,
       };
       const resp = await createDivision(payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, division creada satisfactoria!',
@@ -81,7 +80,6 @@ async function onSubmit() {
         fkProvince: province.value.value,
       };
       const resp = await updateDivision(id.value, payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, division actualizada satisfactoria!',

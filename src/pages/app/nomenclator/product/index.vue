@@ -87,7 +87,7 @@ async function listarProductos() {
       priceCUPProduct: 'CUP',
       priceMLCProduct: 'MLC',
       umProduct: 'um',
-      disabledProduct: 'desabilitado',
+      disabledProduct: 'deshabilitado',
       privateProduct: 'confidencial',
     };
     if (resp.payload != null) {
@@ -104,9 +104,7 @@ async function factoryFn(files: any, updateProgress: any) {
     file: files[0],
   };
 
-  console.log(params);
   const resp = await uploadListProduct(params);
-  console.log(resp);
   if (resp.status == 200) {
     Notify.create({
       message: 'Correcto, fichero importado satisfactoriamente!',

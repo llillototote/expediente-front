@@ -120,7 +120,6 @@ async function onSubmit() {
         permits: ticked_info.value.map((t) => t.value),
       };
       const resp = await createRole(payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, rol creado satisfactoria!',
@@ -146,7 +145,6 @@ async function onSubmit() {
         permits: ticked_info.value.map((t) => t.value),
       };
       const resp = await updateRole(id.value, payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, rol actualizado satisfactoriamente!',
@@ -189,12 +187,10 @@ onMounted(async () => {
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
-          console.log(payload);
           descripcion.value = payload.rolEntity.descriptionRol;
           name.value = payload.rolEntity.nameRol;
           ticked.value = payload.namePermits;
           ticked_info.value = permisionStore.getPermisionsID(ticked.value);
-          console.log(ticked.value);
           ticked_info.value;
         } else alert('payload vacio');
       } else alert('usuario no recuperado');

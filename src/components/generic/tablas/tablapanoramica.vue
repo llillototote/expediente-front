@@ -125,7 +125,6 @@ export default {
         });
       } else {
         arr = this.array.map((item) => {
-          console.log(item);
           const keys = Object.keys(item);
           let a = {};
           keys.forEach((key) => {

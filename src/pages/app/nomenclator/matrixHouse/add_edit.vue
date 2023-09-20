@@ -58,7 +58,6 @@ async function onSubmit() {
         provinceMatrixHouse: province.value.value,
       };
       const resp = await createMatrixHouse(payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, division creada satisfactoria!',
@@ -162,17 +161,14 @@ onMounted(async () => {
       const recuperate = await getByIdMatrixHouse(id.value);
       if (recuperate.status == 200) {
         const { payload } = recuperate;
-        console.log(payload?.provinceMatrixHouse);
         if (payload != null) {
           descripcion.value = payload.descriptionMatrixHouse;
           nombre.value = payload.nameHouse;
           categoria.value = payload.categoryMatrixHouse;
           codigo.value = payload.codeMatrixHouse;
-          console.log(provinces.value);
           const provFind = provinces.value.find(
             (prov) => prov.value == payload.provinceMatrixHouse
           );
-          console.log(provFind);
           if (provFind) province.value = provFind;
         } else alert('payload vacio');
       } else alert('division no recuperado');

@@ -110,7 +110,7 @@ async function onSubmit() {
           : '',
       };
       const resp = await createUser(payload);
-      console.log(resp);
+
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario creado satisfactoria!',
@@ -159,7 +159,7 @@ async function onSubmit() {
           : '',
       };
       const resp = await updateUser(id.value, payload);
-      console.log(resp);
+
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario actualizado satisfactoria!',
@@ -302,7 +302,7 @@ onMounted(async () => {
     id.value = route.query?.payload ? route.query?.payload.toString() : null;
     if (id.value != null) {
       const recuperate = await getByIdUser(id.value);
-      console.log(recuperate.payload);
+
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
@@ -322,12 +322,10 @@ onMounted(async () => {
             label: payload.province.provinceName,
             value: payload.province.provinceID,
           };
-          console.log(payload.user.fkMatrixHouse);
+
           memberDivision.value = payload.user.fkTerritorialDivision != null;
 
           setTimeout(() => {
-            console.log([...divisions.value]);
-            console.log(payload.user.fkTerritorialDivision);
             const divisionFinded = divisions.value.find(
               (it) => it.value == payload.user.fkTerritorialDivision
             );

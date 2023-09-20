@@ -49,7 +49,6 @@ async function onSubmit() {
       descriptionCompany: descripcion.value.trim(),
     };
     const resp = await createCompany(payload);
-    console.log(resp);
     if (resp.status == 200) {
       Notify.create({
         message: 'Correcto, division creada satisfactoria!',
@@ -75,7 +74,6 @@ async function onSubmit() {
       descriptionCompany: descripcion.value.trim(),
     };
     const resp = await updateCompany(id.value, payload);
-    console.log(resp);
     if (resp.status == 200) {
       Notify.create({
         message: 'Correcto, empresa actualizada satisfactoria!',

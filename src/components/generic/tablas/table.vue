@@ -90,7 +90,6 @@ const checkColumns = ref<string[]>(
 
 //EMITIR FILTROS PARA QUE NO SE PIERDAN AL ACTUALIZAR EL COMPPONENT
 watch(checkColumns, (oldvalue, newvalue) => {
-  console.log('elevate-filter');
   //RESPET ORDER
   emit('elevate-filter', [
     textColumns,
@@ -101,7 +100,6 @@ watch(checkColumns, (oldvalue, newvalue) => {
 });
 
 watch(checkColumns, (oldvalue, newvalue) => {
-  console.log('elevate-filter');
   //RESPET ORDER
   emit('elevate-filter', [
     textColumns,
@@ -115,7 +113,6 @@ watch(checkColumns, (oldvalue, newvalue) => {
 const selected = ref<any[]>(props.selectedProps ? props.selectedProps : []);
 //EMITIR SELECCION
 watch(selected, (oldvalue, newvalue) => {
-  console.log('emitiendo');
   emit('selected', selected.value);
 });
 

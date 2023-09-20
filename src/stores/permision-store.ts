@@ -18,7 +18,6 @@ export const usePermisionStore = defineStore('permision', {
         getModulesByPermisionUpdateById: (state) => state.permisionsApp.updateById.modules.map(it => it.entity),
         getModulesByPermisionDeleteById: (state) => state.permisionsApp.deleteById.modules.map(it => it.entity),
         getActivesPermisionIds: (state) => {
-            console.log(state.permisionsApp)
             let list: string[] = []
             Object.keys(state.permisionsApp).forEach(group => {
                 if (state.permisionsApp[group].active) {

@@ -34,7 +34,6 @@ const onSubmit = async () => {
             per.payload,
             resp.payload.listPermits
           );
-          console.log('permisos desplegados');
           Notify.create({
             message: 'Usuario logueado satisfactoriamente',
             textColor: 'white',

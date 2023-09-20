@@ -183,7 +183,6 @@ async function atenderDemandas(
     demandsID: dataSelected.value.map((it) => it.idDemand),
   } as AtentionDemandRequest;
   const resp = await atenderDemand(payload);
-  console.log(resp);
   if (resp.status == 200) {
     Notify.create({
       message: `Info, demandas seleccionadas cambiadas al estado de "${status}" satisfactoriamente!`,

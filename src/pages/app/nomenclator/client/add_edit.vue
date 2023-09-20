@@ -81,7 +81,6 @@ async function onSubmit() {
         provincePerson: province.value.value,
       };
       const resp = await createUser(payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario creado satisfactoria!',
@@ -120,7 +119,6 @@ async function onSubmit() {
         provincePerson: province.value.value,
       };
       const resp = await updateUser(id.value, payload);
-      console.log(resp);
       if (resp.status == 200) {
         Notify.create({
           message: 'Correcto, usuario actualizado satisfactoria!',

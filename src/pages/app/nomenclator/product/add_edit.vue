@@ -45,7 +45,6 @@ async function onSubmit() {
         privatedProduct: confidencial.value,
       } as ClasifProductRequest,
     ]);
-    console.log(resp);
     if (resp.status == 200 || resp.status == 0) {
       Notify.create({
         message: 'Correcto, producto clasificado satisfactoriamente!',
@@ -88,7 +87,6 @@ onMounted(async () => {
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
-          console.log(payload);
           description.value = payload.descriptionProduct;
           category.value = payload.categoryProduct;
           um.value = payload.umProduct;
