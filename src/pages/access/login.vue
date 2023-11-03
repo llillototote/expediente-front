@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { Notify } from 'quasar';
-import { getAllPermision } from 'src/services/external/permision';
-import { NAMESROUTES } from 'src/services/external/permisionDTO';
-import { login } from 'src/services/external/user';
-import { usePermisionStore } from 'src/stores/permision-store';
+import { NAMESROUTES } from 'src/config/permisionDTO';
+import { login } from 'src/services/api/auth/user/user.service';
+import { usePermissionStore } from 'src/stores/permision-store';
 import { useUserStore } from 'src/stores/user-store';
 import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { ResponseExternal } from 'src/common/interface/util';
+import { LoginResponse } from 'src/services/api/auth/user/user.types';
 
 const userStore = useUserStore();
-const permisionStore = usePermisionStore();
+const permisionStore = usePermissionStore();
 const router = useRouter();
 
 const form = reactive({
   isPwd: true,
-  user: 'super_admin', //'',
-  password: 'CpxPrivado2022**', //''
+  user: 'admin', //'',
+  password: 'clave123', //''
 });
 
 const onReset = () => {
@@ -23,36 +24,23 @@ const onReset = () => {
   form.user = '';
 };
 const onSubmit = async () => {
-  const resp = await login({ username: form.user, password: form.password });
-  if (resp.status == 200) {
-    if (resp.payload) {
-      userStore.loginSuccess(resp.payload);
-      const per = await getAllPermision();
-      if (per.status == 200) {
-        if (per.payload) {
-          permisionStore.setPermisionsApp(
-            per.payload,
-            resp.payload.listPermits
-          );
-          Notify.create({
-            message: 'Usuario logueado satisfactoriamente',
-            textColor: 'white',
-            color: 'green',
-            position: 'top-right',
-          });
-          router.push({ name: NAMESROUTES.APP_HOME });
-        }
-      } else
-        Notify.create({
-          message: 'Problemas con obtener los permisos',
-          textColor: 'white',
-          color: 'warning',
-          position: 'top-right',
-        });
-    }
+  const resp: ResponseExternal<LoginResponse> = await login({
+    username: form.user,
+    secret: form.password,
+  });
+  if (resp.status == 200 && resp.payload) {
+    permisionStore.setPermissionsAssigment(resp.payload.user_logged.roles);
+    userStore.loginSuccess(resp.payload);
+    Notify.create({
+      message: 'Usuario logueado satisfactoriamente',
+      textColor: 'white',
+      color: 'green',
+      position: 'top-right',
+    });
+    router.push({ name: NAMESROUTES.APP_HOME });
   } else
     Notify.create({
-      message: 'Credenciales no válidas',
+      message: resp.error,
       textColor: 'white',
       color: 'warning',
       position: 'top-right',

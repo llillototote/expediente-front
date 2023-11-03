@@ -3,27 +3,30 @@ import { Notify } from 'quasar';
 import { onMounted, ref } from 'vue';
 import tableComponent from 'components/generic/tablas/table.vue';
 import { ACTIONS } from 'src/common/enum/actions';
-import { ButtonAction } from 'src/common/interface/util';
+import { ButtonAction, ResponseExternal } from 'src/common/interface/util';
 import { useRouter } from 'vue-router';
 import promiseDialog from 'src/services/promiseDialog';
-import { deleteByIdUser, getAllUser } from 'src/services/external/user';
+import {
+  deleteByIdUser,
+  getAllUser,
+} from 'src/services/api/auth/user/user.service';
 import { maskObject } from 'src/services/util';
-import { UserResponse } from 'src/services/external/userDTO';
-import { ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
+import { NAMESROUTES } from 'src/config/permisionDTO';
 import { Mask } from 'src/services/external/utilDTO';
-import { usePermisionStore } from 'src/stores/permision-store';
+import { usePermissionStore } from 'src/stores/permision-store';
 import { useLoadingStore } from 'src/stores/loading-store';
+import { UserResponse } from 'src/services/api/auth/user/user.types';
 
 // USE GENERAL
 const router = useRouter();
-const permisionStore = usePermisionStore();
+const permissionStore = usePermissionStore();
 const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const seed = ref<any[]>([]);
 
 const actions: ButtonAction[] = [];
-if (permisionStore.havePermision('updateById', ENTITY.USUARIO))
+if (permissionStore.havePermission('UPDATE_USER'))
   actions.push({
     action: ACTIONS.edit,
     color: 'grey',
@@ -31,7 +34,7 @@ if (permisionStore.havePermision('updateById', ENTITY.USUARIO))
     tooltip: 'Editar',
     icon: 'edit_note',
   });
-if (permisionStore.havePermision('deleteById', ENTITY.USUARIO))
+if (permissionStore.havePermission('DELETE_USER'))
   actions.push({
     action: ACTIONS.delete,
     color: 'primary',
@@ -46,7 +49,7 @@ async function eliminar(payload: any) {
   const { row } = payload;
   let desicion = await promiseDialog.confirm(
     'Quieres eliminar el usuario',
-    `Estás seguro que deseas eliminar el usuario ${row['nombre']} ?`,
+    `Estás seguro que deseas eliminar el usuario ${row['USUARIO']} ?`,
     'Aceptar'
   );
   if (desicion) {
@@ -78,21 +81,15 @@ function editar(payload: any) {
 }
 
 async function listarUsuarios() {
-  const resp = await getAllUser();
+  const resp: ResponseExternal<UserResponse[]> = await getAllUser();
   if (resp.status == 200) {
     const mask: Mask<UserResponse> = {
-      namePerson: 'nombre',
-      firstLastNamePerson: 'primer_apellido',
-      secondLastNamePerson: 'segundo_apellido',
-      usernamePerson: 'usuario',
-      emailPerson: 'correo',
-      activePerson: 'estado',
-      identityCardPerson: 'identityCardPerson',
-      genderPerson: 'genderPerson',
-      passwordPerson: 'passwordPerson',
-      pkPerson: 'pkPerson',
-      rols: 'rols',
-      provincePerson: 'provincePerson',
+      id: 'id',
+      username: 'USUARIO',
+      email: 'CORREO',
+      roles: 'roles',
+      createdAt: 'FECHA_CREADO',
+      updatedAt: 'FECHA_MODIFICADO',
     };
     if (resp.payload != null) {
       const re = resp.payload.map((item: any) => maskObject(item, mask));
@@ -100,7 +97,7 @@ async function listarUsuarios() {
     }
 
     refresh.value++;
-  }
+  } else if (resp.status == 401) router.push({ name: NAMESROUTES.LOGIN });
 }
 
 onMounted(async () => {
@@ -114,7 +111,7 @@ onMounted(async () => {
     <div class="col s12">
       <div class="q-pa-md q-gutter-sm">
         <q-btn
-          v-if="permisionStore.havePermision('create', ENTITY.USUARIO)"
+          v-if="permissionStore.havePermission('CREATE_USER')"
           color="primary"
           label="Adicionar"
           :to="{ name: NAMESROUTES.APP_USER_WRITE, query: { mode: 'add' } }"
@@ -122,23 +119,15 @@ onMounted(async () => {
       </div>
 
       <table-component
-        v-if="permisionStore.havePermision('listAll', ENTITY.USUARIO)"
+        v-if="permissionStore.havePermission('ALL_USER')"
         :key="refresh"
-        title="Usuarios internos"
+        title="Usuarios"
         :data="seed"
-        option="nombre"
+        option="USUARIO"
         :actions="actions"
         @edit="editar"
         @delete="eliminar"
-        :hide="[
-          'pkPerson',
-          'passwordPerson',
-          'rols',
-          'genderPerson',
-          'identityCardPerson',
-          'provincePerson',
-          'index',
-        ]"
+        :hide="['id', 'roles', 'index']"
       >
       </table-component>
     </div>

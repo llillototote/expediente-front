@@ -264,12 +264,15 @@ const clearFilterBoolean = (item: string) => {
               color="primary"
               flat
               class="q-ml-sm"
+              icon="filter"
             >
               <q-badge
+                icon="filter"
                 color="primary"
                 v-if="textColumns[item] != '' && checkColumns.includes(item)"
-                >{{ orderFilterColumns.indexOf(item) + 1 }}</q-badge
               >
+                {{ orderFilterColumns.indexOf(item) + 1 }}
+              </q-badge>
               <q-menu transition-show="flip-right" transition-hide="scale">
                 <div class="row no-wrap q-pa-md">
                   <div class="column">
@@ -466,6 +469,7 @@ const clearFilterBoolean = (item: string) => {
               color="primary"
               flat
               class="q-ml-sm"
+              icon="filter"
             >
               <q-badge
                 color="primary"

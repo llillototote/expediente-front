@@ -3,32 +3,34 @@ import { Notify } from 'quasar';
 import { onMounted, ref } from 'vue';
 import tableComponent from 'components/generic/tablas/table.vue';
 import { ACTIONS } from 'src/common/enum/actions';
-import { ButtonAction, SelectField } from 'src/common/interface/util';
+import {
+  ButtonAction,
+  ResponseExternal,
+  SelectField,
+} from 'src/common/interface/util';
 import { useRouter } from 'vue-router';
 import promiseDialog from 'src/services/promiseDialog';
 import {
   deleteByIdRole,
   getAllRole,
-  getRolesBindindWithUserClient,
-  putRolesBindindWithUserClient,
-} from 'src/services/external/role';
+} from 'src/services/api/auth/role/role.service';
 import { maskObject, prepareToSelect } from 'src/services/util';
-import { RoleResponse } from 'src/services/external/roleDTO';
-import { ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
+import { RoleResponse } from 'src/services/api/auth/role/role.types';
+import { NAMESROUTES } from 'src/config/permisionDTO';
 import { Mask } from 'src/services/external/utilDTO';
-import { usePermisionStore } from 'src/stores/permision-store';
+import { usePermissionStore } from 'src/stores/permision-store';
 import { useLoadingStore } from 'src/stores/loading-store';
 
 // USE GENERAL
 const router = useRouter();
-const permisionStore = usePermisionStore();
+const permissionStore = usePermissionStore();
 const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const seed = ref<any[]>([]);
 
 const actions: ButtonAction[] = [];
-if (permisionStore.havePermision('updateById', ENTITY.ROL))
+if (permissionStore.havePermission('UPDATE_ROLE'))
   actions.push({
     action: ACTIONS.edit,
     color: 'grey',
@@ -36,7 +38,7 @@ if (permisionStore.havePermision('updateById', ENTITY.ROL))
     tooltip: 'Editar',
     icon: 'edit_note',
   });
-if (permisionStore.havePermision('deleteById', ENTITY.ROL))
+if (permissionStore.havePermission('DELETE_ROLE'))
   actions.push({
     action: ACTIONS.delete,
     color: 'primary',
@@ -46,18 +48,16 @@ if (permisionStore.havePermision('deleteById', ENTITY.ROL))
   });
 
 const refresh = ref(0);
-const rolsSelected = ref<string[]>([]);
-const rols = ref<SelectField[]>([]);
 const loadingBtn = ref<boolean>(false);
 async function eliminar(payload: any) {
   const { row } = payload;
   let desicion = await promiseDialog.confirm(
     'Quieres eliminar el rol',
-    `Estás seguro que deseas eliminar el rol ${row['nombre']} ?`,
+    `Estás seguro que deseas eliminar el rol ${row['NOMBRE']} ?`,
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdRole(row['pkRol']);
+    const resp = await deleteByIdRole(row['id']);
     if (resp.status == 200) {
       await listarRoles();
       Notify.create({
@@ -80,28 +80,24 @@ function editar(payload: any) {
   const { row } = payload;
   router.push({
     name: NAMESROUTES.APP_ROLE_WRITE,
-    query: { mode: 'edit', payload: row['pkRol'] },
+    query: { mode: 'edit', payload: row['id'] },
   });
 }
 
 async function listarRoles() {
-  const resp = await getAllRole();
+  const resp: ResponseExternal<RoleResponse[]> = await getAllRole();
   if (resp.status == 200) {
     const mask: Mask<RoleResponse> = {
-      nameRol: 'nombre',
-      descriptionRol: 'descripcion',
-      pkRol: 'pkRol',
-      users: 'users',
-      permits: 'permits',
+      id: 'id',
+      name: 'NOMBRE',
+      description: 'DESCRIPCIÓN',
+      permissions: 'permissions',
+      createdAt: 'FECHA_CREADO',
+      updatedAt: 'FECHA_MODIFICADO',
     };
     if (resp.payload != null) {
       const re = resp.payload.map((item: any) => maskObject(item, mask));
       seed.value = re;
-
-      let rols_prepared: SelectField[] = [];
-      const roles = resp.payload;
-      rols_prepared = prepareToSelect(roles, 'nameRol', 'pkRol');
-      rols.value = rols_prepared;
     }
 
     refresh.value++;
@@ -110,25 +106,12 @@ async function listarRoles() {
 
 async function sync() {
   loadingBtn.value = true;
-  await putRolesBindindWithUserClient(rolsSelected.value);
   loadingBtn.value = false;
 }
 
 onMounted(async () => {
   loadingStore.active();
   await listarRoles();
-  const resp = await getRolesBindindWithUserClient();
-
-  if (resp.status == 200) {
-    rolsSelected.value = resp.payload == null ? [] : resp.payload;
-  } else {
-    Notify.create({
-      message: 'Info, No hay roles disponibles para registrar un usuario',
-      textColor: 'white',
-      color: 'warning',
-      position: 'top-right',
-    });
-  }
   loadingStore.inactive();
 });
 </script>
@@ -139,61 +122,25 @@ onMounted(async () => {
         <div class="row">
           <div class="col s2">
             <q-btn
-              v-if="permisionStore.havePermision('create', ENTITY.ROL)"
+              v-if="permissionStore.havePermission('CREATE_ROLE')"
               color="primary"
               label="Adicionar"
               :to="{ name: NAMESROUTES.APP_ROLE_WRITE, query: { mode: 'add' } }"
             />
           </div>
-          <div class="col s9">
-            <q-select
-              filled
-              v-model="rolsSelected"
-              :options="rols"
-              label="Roles para registro de clientes"
-              multiple
-              emit-value
-              map-options
-            >
-              <template
-                v-slot:option="{ itemProps, opt, selected, toggleOption }"
-              >
-                <q-item v-bind="itemProps">
-                  <q-item-section>
-                    {{ opt.label }}
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-toggle
-                      :model-value="selected"
-                      @update:model-value="toggleOption(opt)"
-                    />
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template v-slot:after>
-                <q-btn
-                  v-if="permisionStore.havePermision('create', ENTITY.ROL)"
-                  :loading="loadingBtn"
-                  color="primary"
-                  label="Sincronizar"
-                  @click="sync()"
-                />
-              </template>
-            </q-select>
-          </div>
         </div>
       </div>
 
       <table-component
-        v-if="permisionStore.havePermision('listAll', ENTITY.ROL)"
+        v-if="permissionStore.havePermission('ALL_ROLE')"
         :key="refresh"
         title="Roles"
         :data="seed"
-        option="descripcion"
+        option="DESCRIPCIÓN"
         :actions="actions"
         @edit="editar"
         @delete="eliminar"
-        :hide="['pkRol', 'users', 'permits', 'index']"
+        :hide="['id', 'permissions', 'index']"
       >
       </table-component>
     </div>

@@ -1,30 +1,36 @@
 <script setup lang="ts">
 import { Notify } from 'quasar';
-import { SelectField, Qtree } from 'src/common/interface/util';
-import { CODES, ENTITY, NAMESROUTES } from 'src/services/external/permisionDTO';
+import {
+  SelectField,
+  Qtree,
+  ResponseExternal,
+} from 'src/common/interface/util';
+import { NAMESROUTES } from 'src/config/permisionDTO';
 import {
   createRole,
   getByIdRole,
   updateRole,
-} from 'src/services/external/role';
+} from 'src/services/api/auth/role/role.service';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { usePermisionStore } from 'src/stores/permision-store';
+import { usePermissionStore } from 'src/stores/permision-store';
 import {
-  RoleCreateRequest,
-  RoleUpdateRequest,
-} from 'src/services/external/roleDTO';
+  RoleRequest,
+  RoleResponse,
+} from 'src/services/api/auth/role/role.types';
 import { useLoadingStore } from 'src/stores/loading-store';
+import { PermissionResponse } from 'src/services/api/auth/permission/permission.types';
+import { getAllPermission } from 'src/services/api/auth/permission/permission.service';
 
 // USE GENERAL
 const route = useRoute();
 const router = useRouter();
-const permisionStore = usePermisionStore();
+const permissionStore = usePermissionStore();
 const loadingStore = useLoadingStore();
 // END USE GENERAL
 
 const mode = ref<string>('add');
-const id = ref<string | null>(null);
+const id = ref<number | null>(null);
 const title = ref<string>('');
 
 // FORM
@@ -35,66 +41,31 @@ const descripcion = ref<string>('');
 const refresh = ref<number>(0);
 const tab = ref<string>('details');
 
-const ticked = ref<CODES[]>([]);
+const ticked = ref<string[]>([]);
 const expanded = ref(['Módulos de permisos']);
 const ticked_info = ref<SelectField[]>([]);
-const simple = ref<Qtree<CODES>[]>([
+
+const simple = ref<Qtree<string>[]>([
   {
     label: 'Módulos de permisos',
-    children: [
-      {
-        label: ENTITY.USUARIO,
-        children: [
-          { label: CODES.LISTAR_USUARIOS },
-          { label: CODES.OBTENER_USUARIO_POR_ID },
-          { label: CODES.CREAR_USUARIO },
-          { label: CODES.MODIFICAR_USUARIO_POR_ID },
-          { label: CODES.ELIMINAR_USUARIO_POR_ID },
-        ],
-      },
-      {
-        label: ENTITY.ROL,
-        children: [
-          { label: CODES.LISTAR_ROLES },
-          { label: CODES.OBTENER_ROL_POR_ID },
-          { label: CODES.CREAR_ROL },
-          { label: CODES.MODIFICAR_ROL_POR_ID },
-          { label: CODES.ELIMINAR_ROL_POR_ID },
-        ],
-      },
-      {
-        label: ENTITY.DEMANDA,
-        children: [
-          { label: CODES.LISTAR_DEMANDA_USUARIO },
-          { label: CODES.CREAR_DEMANDA },
-          { label: CODES.MODIFICAR_DEMANDA_POR_ID },
-          { label: CODES.ELIMINAR_DEMANDA_POR_ID },
-        ],
-      },
-      {
-        label: ENTITY.CLIENTE,
-        children: [
-          { label: CODES.LISTAR_CLIENTES },
-          { label: CODES.CREAR_CLIENTE },
-          { label: CODES.MODIFICAR_CLIENTE_POR_ID },
-          { label: CODES.ELIMINAR_CLIENTE_POR_ID },
-        ],
-      },
-      {
-        label: ENTITY.PRODUCTO,
-        children: [
-          { label: CODES.LISTAR_PRODUCTOS },
-          { label: CODES.OBTENER_PRODUCTO_POR_ID },
-          { label: CODES.OBTENER_PRODUCTO_POR_CODIGO },
-          { label: CODES.OBTENER_LISTADO_DE_PRODUCTO_POR_NOMBRE },
-        ],
-      },
-    ],
+    children: [],
   },
 ]);
 
 // END FORM HELP
 // END FORM
+
+async function obtenerPermisos() {
+  const resp: ResponseExternal<PermissionResponse[]> = await getAllPermission();
+  if (resp.status == 200) {
+    if (resp.payload) {
+      simple.value[0].label = 'Módulos de permisos';
+      simple.value[0].children = resp.payload.map((it) => {
+        return { label: it.code };
+      });
+    }
+  } else if (resp.status == 401) router.push({ name: NAMESROUTES.LOGIN });
+}
 
 // METHODS FORM
 async function onSubmit() {
@@ -114,10 +85,10 @@ async function onSubmit() {
 
   if (mode.value == 'add') {
     if (ticked_info.value.length > 0) {
-      const payload: RoleCreateRequest = {
-        descriptionRol: descripcion.value.trim(),
-        nameRol: name.value.trim(),
-        permits: ticked_info.value.map((t) => t.value),
+      const payload: RoleRequest = {
+        description: descripcion.value.trim(),
+        name: name.value.trim(),
+        permissions: ticked_info.value.map((t) => Number(t.value)),
       };
       const resp = await createRole(payload);
       if (resp.status == 200) {
@@ -139,10 +110,10 @@ async function onSubmit() {
     }
   } else if (mode.value == 'edit' && id.value != null) {
     if (ticked_info.value.length > 0) {
-      const payload: RoleUpdateRequest = {
-        descriptionRol: descripcion.value.trim(),
-        nameRol: name.value.trim(),
-        permits: ticked_info.value.map((t) => t.value),
+      const payload: RoleRequest = {
+        description: descripcion.value.trim(),
+        name: name.value.trim(),
+        permissions: ticked_info.value.map((t) => Number(t.value)),
       };
       const resp = await updateRole(id.value, payload);
       if (resp.status == 200) {
@@ -174,24 +145,32 @@ function onReset() {
 }
 // END METHODS FORM
 
+const getPermisionsID = (ticked: any) => {
+  console.log(ticked);
+};
+
 onMounted(async () => {
   loadingStore.active();
+  await obtenerPermisos();
   mode.value = route.query?.mode ? route.query?.mode.toString() : 'add';
   if (mode.value == 'add') {
     title.value = 'Adicionar rol';
   } else {
     title.value = 'Modificar rol';
-    id.value = route.query?.payload ? route.query?.payload.toString() : null;
+    id.value = route.query?.payload
+      ? Number(route.query?.payload.toString())
+      : null;
     if (id.value != null) {
-      const recuperate = await getByIdRole(id.value);
+      const recuperate: ResponseExternal<RoleResponse> = await getByIdRole(
+        id.value
+      );
       if (recuperate.status == 200) {
         const { payload } = recuperate;
         if (payload != null) {
-          descripcion.value = payload.rolEntity.descriptionRol;
-          name.value = payload.rolEntity.nameRol;
-          ticked.value = payload.namePermits;
-          ticked_info.value = permisionStore.getPermisionsID(ticked.value);
-          ticked_info.value;
+          descripcion.value = payload.description;
+          name.value = payload.name;
+          ticked.value = payload.permissions.map((it) => it.code);
+          //ticked_info.value = permissionStore.getPermissionsID(ticked.value);
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
@@ -202,134 +181,143 @@ onMounted(async () => {
 <template>
   <q-page class="row q-pa-sm">
     <div class="col-12">
-      <h4>{{ title }}</h4>
-      <q-form
-        ref="myForm"
-        @submit.prevent="onSubmit"
-        @reset="onReset"
-        :key="refresh"
-      >
-        <q-card class="no-shadow">
-          <q-tabs
-            v-model="tab"
-            dense
-            class="text-grey"
-            active-color="primary"
-            indicator-color="primary"
-            align="justify"
-            narrow-indicator
+      <q-card dark bordered class="bg-grey-3 my-card">
+        <q-card-section>
+          <div class="text-h6 text-primary">{{ title }}</div>
+        </q-card-section>
+
+        <q-separator inset />
+
+        <q-card-section>
+          <q-form
+            ref="myForm"
+            @submit.prevent="onSubmit"
+            @reset="onReset"
+            :key="refresh"
           >
-            <q-tab name="details" label="Detalles" />
-            <q-tab name="permisions" label="Permisos" />
-          </q-tabs>
+            <q-card class="no-shadow bg-grey-3">
+              <q-tabs
+                v-model="tab"
+                dense
+                class="text-primary bg-grey-3"
+                active-color="primary"
+                indicator-color="primary"
+                align="justify"
+                narrow-indicator
+              >
+                <q-tab name="details" label="Detalles" />
+                <q-tab name="permisions" label="Permisos" />
+              </q-tabs>
 
-          <q-separator />
-
-          <q-tab-panels v-model="tab" animated>
-            <q-tab-panel name="details">
-              <div class="text-h6">Detalles</div>
-              <div class="row">
-                <div class="col-8 q-pa-sm offset-2">
-                  <q-input
-                    dense
-                    outlined
-                    v-model="name"
-                    label="Nombre *"
-                    hint="nombre del rol"
-                    lazy-rules
-                    :rules="[
-                      (val) =>
-                        (val && val.trim().length > 0) ||
-                        'Por favor introduce el nombre del rol',
-                    ]"
-                  />
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-8 offset-2 q-pa-sm">
-                  <q-input
-                    v-model="descripcion"
-                    outlined
-                    type="textarea"
-                    hint="Descripción del alcanze del rol"
-                    lazy-rules
-                    :rules="[
-                      (val) =>
-                        (val && val.trim().length > 0) ||
-                        'Por favor introduce una descripción para el rol',
-                    ]"
-                  />
-                </div>
-              </div>
-            </q-tab-panel>
-
-            <q-tab-panel name="permisions">
-              <div class="text-h6">Permisos</div>
-              <div class="row">
-                <q-tree
-                  class="col-5"
-                  :nodes="simple"
-                  node-key="label"
-                  tick-strategy="leaf"
-                  v-model:ticked="ticked"
-                  @update:ticked="
-                    () => {
-                      ticked_info = permisionStore.getPermisionsID(ticked);
-                    }
-                  "
-                  v-model:expanded="expanded"
-                />
-                <div class="col-7">
-                  <div v-if="ticked_info.length > 0">
-                    <q-list bordered dense padding>
-                      <q-item-label header>Seleccionados</q-item-label>
-                      <div
-                        v-for="tick in ticked_info"
-                        :key="`ticked-${tick.value}`"
-                      >
-                        <q-item clickable v-ripple>
-                          <q-item-section>
-                            <q-item-label caption>
-                              {{ tick.label }}
-                            </q-item-label>
-                          </q-item-section>
-                        </q-item>
-                        <q-separator />
-                      </div>
-                    </q-list>
+              <q-separator />
+              <pre>{{ ticked }}</pre>
+              <q-tab-panels v-model="tab" animated class="bg-grey-2">
+                <q-tab-panel name="details">
+                  <div class="row">
+                    <div class="col-8 q-pa-sm offset-2">
+                      <q-input
+                        dense
+                        outlined
+                        bg-color="white"
+                        v-model="name"
+                        label="Nombre *"
+                        hint="nombre del rol"
+                        lazy-rules
+                        :rules="[
+                          (val) =>
+                            (val && val.trim().length > 0) ||
+                            'Por favor introduce el nombre del rol',
+                        ]"
+                      />
+                    </div>
                   </div>
-                  <q-card v-else class="no-shadow">
-                    <q-card-section>
-                      <q-card class="my-card" flat bordered>
+                  <div class="row">
+                    <div class="col-8 offset-2 q-pa-sm">
+                      <q-input
+                        v-model="descripcion"
+                        outlined
+                        bg-color="white"
+                        type="textarea"
+                        hint="Descripción del alcanze del rol"
+                        lazy-rules
+                        :rules="[
+                          (val) =>
+                            (val && val.trim().length > 0) ||
+                            'Por favor introduce una descripción para el rol',
+                        ]"
+                      />
+                    </div>
+                  </div>
+                </q-tab-panel>
+
+                <q-tab-panel name="permisions">
+                  <div class="row">
+                    <q-tree
+                      class="col-5 text-primary"
+                      :nodes="simple"
+                      node-key="label"
+                      tick-strategy="leaf"
+                      v-model:ticked="ticked"
+                      @update:ticked="
+                        () => {
+                          getPermisionsID(ticked);
+                        }
+                      "
+                      v-model:expanded="expanded"
+                    />
+                    <div class="col-7">
+                      <div v-if="ticked_info.length > 0">
+                        <q-list bordered dense padding>
+                          <q-item-label header>Seleccionados</q-item-label>
+                          <div
+                            v-for="tick in ticked_info"
+                            :key="`ticked-${tick.value}`"
+                          >
+                            <q-item clickable v-ripple>
+                              <q-item-section>
+                                <q-item-label caption>
+                                  {{ tick.label }}
+                                </q-item-label>
+                              </q-item-section>
+                            </q-item>
+                            <q-separator />
+                          </div>
+                        </q-list>
+                      </div>
+                      <q-card v-else class="no-shadow">
                         <q-card-section>
-                          <div class="text-h6 q-mt-sm q-mb-xs text-grey">
-                            No hay nada que mostrar
-                          </div>
-                          <div class="text-caption text-grey">
-                            Aun no hay permisos seleccionados
-                          </div>
+                          <q-card class="my-card" flat bordered>
+                            <q-card-section>
+                              <div class="text-h6 q-mt-sm q-mb-xs text-grey">
+                                No hay nada que mostrar
+                              </div>
+                              <div class="text-caption text-grey">
+                                Aun no hay permisos seleccionados
+                              </div>
+                            </q-card-section>
+                          </q-card>
                         </q-card-section>
                       </q-card>
-                    </q-card-section>
-                  </q-card>
-                </div>
+                    </div>
+                  </div>
+                </q-tab-panel>
+              </q-tab-panels>
+            </q-card>
+            <div class="row">
+              <div class="col-8 q-pa-sm">
+                <q-btn label="Aceptar" type="submit" color="primary" />
+                <q-btn
+                  label="Salir"
+                  type="reset"
+                  flat
+                  color="primary"
+                  class="q-ml-sm"
+                />
               </div>
-            </q-tab-panel>
-          </q-tab-panels>
-        </q-card>
-        <div class="row">
-          <div class="col-8 q-pa-sm">
-            <q-btn label="Aceptar" type="submit" color="primary" />
-            <q-btn
-              label="Salir"
-              type="reset"
-              flat
-              color="primary"
-              class="q-ml-sm"
-            />
-          </div>
-        </div>
-      </q-form>
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
     </div>
   </q-page>
 </template>

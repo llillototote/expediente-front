@@ -1,38 +1,49 @@
 import { defineStore } from 'pinia';
-import { LoginResponse, PayloadLoginStore } from 'src/services/external/userDTO';
+import {
+  LoginResponse,
+  UserProfileState,
+} from 'src/services/api/auth/user/user.types';
 
 export const useUserStore = defineStore('user', {
   persist: true,
-  state: () => ({
-    profile: {
-      token: '',
-      bearer: '',
-      userName: '',
-      namePerson: '',
-      authorities: [],
-      listPermits: []
-    } as PayloadLoginStore
-
+  state: (): UserProfileState => ({
+    token_type: 'bearer',
+    access_token: '',
+    refresh_token: '',
+    id: 0,
+    email: '',
+    username: '',
+    roles: [],
+    isLoggedIn: false,
   }),
   getters: {
-    getProfile: (state) => state.profile,
+    getProfile(state: UserProfileState): UserProfileState {
+      return state;
+    },
   },
   actions: {
     loginSuccess(profile: LoginResponse) {
-      this.profile.bearer = profile.bearer
-      this.profile.token = profile.token
-      this.profile.userName = profile.userName
-      this.profile.namePerson = profile.namePerson
-      this.profile.listPermits = profile.listPermits
-      this.profile.authorities = profile.authorities
+      this.token_type = profile.token_type;
+      this.access_token = profile.access_token;
+      this.refresh_token = profile.refresh_token;
+      this.id = profile.user_logged.id;
+      this.username = profile.user_logged.username;
+      this.email = profile.user_logged.email;
+      this.roles = profile.user_logged.roles;
+      this.isLoggedIn = true;
     },
     logoutSuccess() {
-      this.profile.bearer = ''
-      this.profile.token = ''
-      this.profile.userName = ''
-      this.profile.namePerson = ''
-      this.profile.listPermits = []
-      this.profile.authorities = []
-    }
+      this.token_type = 'bearer';
+      this.access_token = '';
+      this.refresh_token = '';
+      this.id = 0;
+      this.username = '';
+      this.email = '';
+      this.roles = [];
+      this.isLoggedIn = false;
+    },
+    setAccessToken(access_token: string) {
+      this.access_token = access_token;
+    },
   },
 });

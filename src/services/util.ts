@@ -1,11 +1,11 @@
 import { ResponseExternal, SelectField } from 'src/common/interface/util';
 import { permisionsRoutesApp } from 'src/config/permisos';
-import { CODES } from './external/permisionDTO';
+import { Mask } from './external/utilDTO';
 
-export function prepareToSelect(
-  collection: any[],
-  label: string,
-  value: string
+export function prepareToSelect<T>(
+  collection: T[],
+  label: keyof T,
+  value: keyof T
 ): SelectField[] {
   const res: SelectField[] = [];
   collection.forEach((elem) => {
@@ -14,7 +14,11 @@ export function prepareToSelect(
   return res;
 }
 
-export function prepareDataToTabla(array: any[], actions = false, hide: string[]) {
+export function prepareDataToTabla(
+  array: any[],
+  actions = false,
+  hide: string[]
+) {
   const columns: any[] = [];
   let data = array;
   if (array.length > 0) {
@@ -28,36 +32,35 @@ export function prepareDataToTabla(array: any[], actions = false, hide: string[]
           field: key, //(row:any)=>row[key],
           format: (val: any) => `${val}`,
           sortable: true,
-          classes: (!hide.includes(key)) ? '' : 'hidden',
-          headerClasses: (!hide.includes(key)) ? '' : 'hidden',
+          classes: !hide.includes(key) ? '' : 'hidden',
+          headerClasses: !hide.includes(key) ? '' : 'hidden',
         });
       } else {
-
         columns.push({
           name: key,
           label: key,
           align: alinearColumna(array[0][key]),
           field: key,
           sortable: true,
-          classes: (!hide.includes(key)) ? '' : 'hidden',
-          headerClasses: (!hide.includes(key)) ? '' : 'hidden',
+          classes: !hide.includes(key) ? '' : 'hidden',
+          headerClasses: !hide.includes(key) ? '' : 'hidden',
         });
       }
-
-
     });
   }
   if (actions) {
     columns.push({
       name: 'actions',
       required: true,
-      label: 'opciones',
+      label: 'OPCIONES',
       align: 'center',
       field: 'actions',
       sortable: false,
     });
 
-    data = data.map((item: any) => { return { ...item, actions: true } })
+    data = data.map((item: any) => {
+      return { ...item, actions: true };
+    });
   }
   return { columns, data };
 }
@@ -81,59 +84,69 @@ function alinearColumna(valor: any) {
   typeof valor;
 }
 
-
 export function preloadResponseExternal<T>(response: any): ResponseExternal<T> {
+  console.log('response');
+  console.log(response);
   if (response.data) {
     return {
       payload: response.data,
-      status: response.status
-    } as ResponseExternal<T>
-
+      status: response.status,
+    } as ResponseExternal<T>;
+  } else if (response.status == 204) {
+    return {
+      payload: response.data,
+      status: response.status,
+    } as ResponseExternal<T>;
   } else if (response.response) {
-    console.log('response')
-    console.log(response.response)
     if (response.response.data) {
       return {
         payload: null,
         status: response.response.status,
-        error: (typeof response.response.data === 'string') ? response.response.data : response.response.data?.message
-      } as ResponseExternal<T>
+        error:
+          typeof response.response.data === 'string'
+            ? response.response.data
+            : response.response.data?.message,
+      } as ResponseExternal<T>;
     } else
       return {
         payload: null,
         status: response.response.status,
-        error: response.message
-      } as ResponseExternal<T>
+        error: response.message,
+      } as ResponseExternal<T>;
   }
   return {
     payload: null,
     status: 0,
-    error: 'error no controlado'
-  } as ResponseExternal<T>
+    error: 'error no controlado',
+  } as ResponseExternal<T>;
 }
 
-
-export function maskObject(obj: any, mask: any) {
-  let objnew = {}
-  Object.keys(mask).forEach(keyMask => {
-    objnew = { ...objnew, [mask[keyMask]]: obj[keyMask] }
+export function maskObject<T>(obj: T, mask: Mask<T>) {
+  let objnew = {};
+  Object.keys(mask).forEach((keyMask) => {
+    objnew = { ...objnew, [mask[keyMask]]: obj[keyMask] };
   });
-  return objnew
+  return objnew;
 }
 
 export function revisarPermisosRouter(route: string, permises: any[]): boolean {
+  console.log('route', route);
+  console.log('permises', permises);
   return verifyHavePermisionsRoutesApp(route, permises);
 }
 
-function verifyHavePermisionsRoutesApp(route: string, permises: CODES[]): boolean {
-  const finded = permisionsRoutesApp.find(it => it.routename == route)
+function verifyHavePermisionsRoutesApp(
+  route: string,
+  permises: string[]
+): boolean {
+  const finded = permisionsRoutesApp.find((it) => it.routename == route);
   if (finded) {
-    let flag = true
-    finded.dependencies.forEach(per => {
+    let flag = true;
+    finded.dependencies.forEach((per) => {
       if (!permises.includes(per)) {
-        flag = false
+        flag = false;
       }
-    })
-    return flag
-  } else return true
+    });
+    return flag;
+  } else return true;
 }

@@ -22,7 +22,7 @@ import {
   updateUser,
 } from 'src/services/external/user';
 import { getAllProvinces } from 'src/services/external/nomenclator/province';
-import { NAMESROUTES } from 'src/services/external/permisionDTO';
+import { NAMESROUTES } from 'src/config/permisionDTO';
 import { useLoadingStore } from 'src/stores/loading-store';
 import { getAllDivision } from 'src/services/external/nomenclator/division';
 import { DivisionShort } from 'src/services/external/nomenclator/divisionDTO';
