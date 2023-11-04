@@ -21,6 +21,7 @@ import {
 import { useLoadingStore } from 'src/stores/loading-store';
 import { PermissionResponse } from 'src/services/api/auth/permission/permission.types';
 import { getAllPermission } from 'src/services/api/auth/permission/permission.service';
+import { prepareToSelect } from 'src/services/util';
 
 // USE GENERAL
 const route = useRoute();
@@ -43,7 +44,8 @@ const tab = ref<string>('details');
 
 const ticked = ref<string[]>([]);
 const expanded = ref(['Módulos de permisos']);
-const ticked_info = ref<SelectField[]>([]);
+const selected = ref<string | null>(null);
+const ticked_info = ref<PermissionResponse[]>([]);
 
 const simple = ref<Qtree<string>[]>([
   {
@@ -55,14 +57,16 @@ const simple = ref<Qtree<string>[]>([
 // END FORM HELP
 // END FORM
 
-async function obtenerPermisos() {
+async function obtenerPermisosActivos() {
   const resp: ResponseExternal<PermissionResponse[]> = await getAllPermission();
   if (resp.status == 200) {
     if (resp.payload) {
       simple.value[0].label = 'Módulos de permisos';
-      simple.value[0].children = resp.payload.map((it) => {
-        return { label: it.code };
-      });
+      simple.value[0].children = resp.payload
+        .filter((it) => it.active)
+        .map((it) => {
+          return { label: it.code };
+        });
     }
   } else if (resp.status == 401) router.push({ name: NAMESROUTES.LOGIN });
 }
@@ -88,10 +92,10 @@ async function onSubmit() {
       const payload: RoleRequest = {
         description: descripcion.value.trim(),
         name: name.value.trim(),
-        permissions: ticked_info.value.map((t) => Number(t.value)),
+        permissions: ticked_info.value.map((t) => Number(t.id)),
       };
       const resp = await createRole(payload);
-      if (resp.status == 200) {
+      if (resp.status == 201) {
         Notify.create({
           message: 'Correcto, rol creado satisfactoria!',
           textColor: 'white',
@@ -113,16 +117,17 @@ async function onSubmit() {
       const payload: RoleRequest = {
         description: descripcion.value.trim(),
         name: name.value.trim(),
-        permissions: ticked_info.value.map((t) => Number(t.value)),
+        permissions: ticked_info.value.map((t) => Number(t.id)),
       };
       const resp = await updateRole(id.value, payload);
-      if (resp.status == 200) {
+      if (resp.status == 201) {
         Notify.create({
           message: 'Correcto, rol actualizado satisfactoriamente!',
           textColor: 'white',
           color: 'green',
           position: 'top-right',
         });
+        router.push({ name: NAMESROUTES.APP_ROLE_LIST });
       } else {
         Notify.create({
           message: resp.error,
@@ -145,13 +150,25 @@ function onReset() {
 }
 // END METHODS FORM
 
-const getPermisionsID = (ticked: any) => {
-  console.log(ticked);
+const getPermissionsID = (tickes: string[]) => {
+  console.log('ticked', tickes);
+  const tickesFinded: PermissionResponse[] = [];
+  tickes.forEach((tick) => {
+    const finded: PermissionResponse | undefined =
+      permissionStore.permissionsAll.find((it) => it.code === tick);
+    if (finded) tickesFinded.push(finded);
+  });
+
+  ticked_info.value = tickesFinded;
+};
+
+const showInfo = (e: any) => {
+  console.log('selected', e);
 };
 
 onMounted(async () => {
   loadingStore.active();
-  await obtenerPermisos();
+  await obtenerPermisosActivos();
   mode.value = route.query?.mode ? route.query?.mode.toString() : 'add';
   if (mode.value == 'add') {
     title.value = 'Adicionar rol';
@@ -170,7 +187,7 @@ onMounted(async () => {
           descripcion.value = payload.description;
           name.value = payload.name;
           ticked.value = payload.permissions.map((it) => it.code);
-          //ticked_info.value = permissionStore.getPermissionsID(ticked.value);
+          getPermissionsID(ticked.value);
         } else alert('payload vacio');
       } else alert('usuario no recuperado');
     }
@@ -210,7 +227,6 @@ onMounted(async () => {
               </q-tabs>
 
               <q-separator />
-              <pre>{{ ticked }}</pre>
               <q-tab-panels v-model="tab" animated class="bg-grey-2">
                 <q-tab-panel name="details">
                   <div class="row">
@@ -257,10 +273,17 @@ onMounted(async () => {
                       :nodes="simple"
                       node-key="label"
                       tick-strategy="leaf"
+                      selected-color="primary"
+                      v-model:selected="selected"
                       v-model:ticked="ticked"
+                      @update:selected="
+                        (e) => {
+                          showInfo(e);
+                        }
+                      "
                       @update:ticked="
                         () => {
-                          getPermisionsID(ticked);
+                          getPermissionsID(ticked);
                         }
                       "
                       v-model:expanded="expanded"
@@ -271,16 +294,26 @@ onMounted(async () => {
                           <q-item-label header>Seleccionados</q-item-label>
                           <div
                             v-for="tick in ticked_info"
-                            :key="`ticked-${tick.value}`"
+                            :key="`ticked-${tick.id}`"
                           >
-                            <q-item clickable v-ripple>
+                            <q-item>
                               <q-item-section>
-                                <q-item-label caption>
-                                  {{ tick.label }}
+                                <q-item-label>
+                                  <q-chip
+                                    color="primary"
+                                    text-color="white"
+                                    icon="directions"
+                                  >
+                                    {{ tick.code }}
+                                  </q-chip>
                                 </q-item-label>
+                                <q-item-label caption lines="2">{{
+                                  tick.description
+                                }}</q-item-label>
                               </q-item-section>
                             </q-item>
-                            <q-separator />
+
+                            <q-separator spaced inset />
                           </div>
                         </q-list>
                       </div>

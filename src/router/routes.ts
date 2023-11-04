@@ -76,15 +76,6 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'permission/write',
-        name: NAMESROUTES.APP_PERMISSION_LIST,
-        component: () => import('pages/app/security/permission/add_edit.vue'),
-        meta: {
-          transition_enter: 'animated fadeInRight',
-          transition_leave: 'animated fadeOut',
-        },
-      },
-      {
         path: 'department',
         name: NAMESROUTES.APP_DEPARTMENT_LIST,
         component: () => import('pages/app/department/index.vue'),
@@ -158,7 +149,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'document',
-        name: NAMESROUTES.APP_DOCUEMNT_LIST,
+        name: NAMESROUTES.APP_DOCUMENT_LIST,
         component: () => import('pages/app/document/index.vue'),
         meta: {
           transition_enter: 'animated fadeInRight',
@@ -167,7 +158,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'document/write',
-        name: NAMESROUTES.APP_DOCUEMNT_WRITE,
+        name: NAMESROUTES.APP_DOCUMENT_WRITE,
         component: () => import('pages/app/document/add_edit.vue'),
         meta: {
           transition_enter: 'animated fadeInRight',

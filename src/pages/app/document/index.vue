@@ -12,10 +12,10 @@ import { useLoadingStore } from 'src/stores/loading-store';
 import { NAMESROUTES } from 'src/config/permisionDTO';
 import promiseDialog from 'src/services/promiseDialog';
 import {
-  deleteByIdDepartment,
-  getAllDepartment,
-} from 'src/services/api/bussiness/department/department.service';
-import { DepartmentResponse } from 'src/services/api/bussiness/department/department.types';
+  deleteByIdDocument,
+  getAllDocument,
+} from 'src/services/api/bussiness/document/document.service';
+import { DocumentResponse } from 'src/services/api/bussiness/document/document.types';
 
 // USE GENERAL
 const router = useRouter();
@@ -26,7 +26,7 @@ const loadingStore = useLoadingStore();
 const seed = ref<any[]>([]);
 
 const actions: ButtonAction[] = [];
-if (permissionStore.havePermission('UPDATE_DEPARTMENT'))
+if (permissionStore.havePermission('UPDATE_DOCUMENT'))
   actions.push({
     action: ACTIONS.edit,
     color: 'grey',
@@ -34,7 +34,7 @@ if (permissionStore.havePermission('UPDATE_DEPARTMENT'))
     tooltip: 'Editar',
     icon: 'edit_note',
   });
-if (permissionStore.havePermission('DELETE_DEPARTMENT'))
+if (permissionStore.havePermission('DELETE_DOCUMENT'))
   actions.push({
     action: ACTIONS.delete,
     color: 'primary',
@@ -48,23 +48,23 @@ const refresh = ref(0);
 async function eliminar(payload: any) {
   const { row } = payload;
   let desicion = await promiseDialog.confirm(
-    'Quieres eliminar el departamento',
-    `Estás seguro que deseas eliminar el departamento ${row['NOMBRE']} ?`,
+    'Quieres eliminar el documento',
+    `Estás seguro que deseas eliminar el documento ${row['NOMBRE']} ?`,
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdDepartment(row['id']);
+    const resp = await deleteByIdDocument(row['id']);
     if (resp.status == 204) {
-      await listarAllDepartment();
+      await listarAllDocument();
       Notify.create({
-        message: 'Info, departamento eliminado satisfactoriamente!',
+        message: 'Info, documento eliminado satisfactoriamente!',
         textColor: 'white',
         color: 'blue',
         position: 'top-right',
       });
     } else if (resp.status == 401) {
       Notify.create({
-        message: 'Advertencia, No se pudo eliminar el departamento!',
+        message: 'Advertencia, No se pudo eliminar el documento!',
         textColor: 'white',
         color: 'warning',
         position: 'top-right',
@@ -84,17 +84,20 @@ async function eliminar(payload: any) {
 function editar(payload: any) {
   const { row } = payload;
   router.push({
-    name: NAMESROUTES.APP_DEPARTMENT_WRITE,
+    name: NAMESROUTES.APP_DOCUMENT_WRITE,
     query: { mode: 'edit', payload: row['id'] },
   });
 }
 
-async function listarAllDepartment() {
-  const resp = await getAllDepartment();
+async function listarAllDocument() {
+  const resp = await getAllDocument();
   if (resp.status == 200) {
-    const mask: Mask<DepartmentResponse> = {
+    const mask: Mask<DocumentResponse> = {
       id: 'id',
       name: 'NOMBRE',
+      location: 'UBICACION',
+      record: 'record',
+      type: 'TIPO',
       createdAt: 'FECHA_CREADO',
       updatedAt: 'FECHA_MODIFICADO',
     };
@@ -109,7 +112,7 @@ async function listarAllDepartment() {
 
 onMounted(async () => {
   loadingStore.active();
-  await listarAllDepartment();
+  await listarAllDocument();
   loadingStore.inactive();
 });
 </script>
@@ -118,11 +121,11 @@ onMounted(async () => {
     <div class="col s12">
       <div class="q-pa-md q-gutter-sm">
         <q-btn
-          v-if="permissionStore.havePermission('CREATE_DEPARTMENT')"
+          v-if="permissionStore.havePermission('CREATE_DOCUMENT')"
           color="primary"
           label="Adicionar"
           :to="{
-            name: NAMESROUTES.APP_DEPARTMENT_WRITE,
+            name: NAMESROUTES.APP_DOCUMENT_WRITE,
             query: { mode: 'add' },
           }"
         />
@@ -130,11 +133,11 @@ onMounted(async () => {
 
       <table-component
         :key="refresh"
-        title="Departamentos"
+        title="Documentos"
         :data="seed"
         option="NOMBRE"
         :actions="actions"
-        :hide="['index', 'id']"
+        :hide="['index', 'id', 'record']"
         @delete="eliminar"
         @edit="editar"
       >

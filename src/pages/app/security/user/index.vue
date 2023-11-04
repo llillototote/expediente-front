@@ -53,7 +53,7 @@ async function eliminar(payload: any) {
     'Aceptar'
   );
   if (desicion) {
-    const resp = await deleteByIdUser(row['pkPerson']);
+    const resp = await deleteByIdUser(row['id']);
     if (resp.status == 200) {
       await listarUsuarios();
       Notify.create({
@@ -76,7 +76,7 @@ function editar(payload: any) {
   const { row } = payload;
   router.push({
     name: NAMESROUTES.APP_USER_WRITE,
-    query: { mode: 'edit', payload: row['pkPerson'] },
+    query: { mode: 'edit', payload: row['id'] },
   });
 }
 
