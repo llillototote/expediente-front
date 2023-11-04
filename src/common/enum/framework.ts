@@ -1,5 +1,4 @@
 export enum ModeSelection {
-    multiple = 'multiple',
-    single = 'single',
-
+  multiple = 'multiple',
+  single = 'single',
 }

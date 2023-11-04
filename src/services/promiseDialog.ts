@@ -1,10 +1,13 @@
 import { Dialog } from 'quasar';
 
-let qs: any = { hide: () => { console.log('ok') } }
-export { qs }
+let qs: any = {
+  hide: () => {
+    console.log('ok');
+  },
+};
+export { qs };
 
 class _AppDialogService {
-
   public qs: any;
 
   async dialogtest() {
@@ -21,7 +24,7 @@ class _AppDialogService {
     );
   }
   async dialog(opts: any = {}) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (opts.prompt === true) opts.prompt = { model: '', type: 'text' };
 
       qs = Dialog.create({
@@ -31,8 +34,8 @@ class _AppDialogService {
         persistent: opts.persist == null ? false : opts.persist,
         prompt: opts.prompt,
         ok: {
-          label: opts.ok || 'ok'
-        }
+          label: opts.ok || 'ok',
+        },
       })
         .onOk((res: string) => resolve(opts.confirm ? true : res || ''))
         .onCancel(() => resolve(false));
@@ -46,7 +49,7 @@ class _AppDialogService {
       confirm: true,
       cancel: true,
       persist: true,
-      ok: label
+      ok: label,
     });
   }
   async alert(title: string, msg: string) {
@@ -57,12 +60,12 @@ class _AppDialogService {
       title: title,
       msg: msg,
       persist: true,
-      prompt: prompt || true
+      prompt: prompt || true,
     });
   }
 
   destroy() {
-    qs.hide()
+    qs.hide();
   }
 }
 

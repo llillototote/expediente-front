@@ -70,8 +70,12 @@ module.exports = configure(function (/* ctx */) {
       // minify: false,
       // polyfillModulePreload: true,
       // distDir
-
-      // extendViteConf (viteConf) {},
+      //BY LLILLOTOTOTE
+      extendViteConf(viteConf) {
+        if (viteConf.mode.electron) {
+          // do something with ViteConf
+        }
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -172,7 +176,11 @@ module.exports = configure(function (/* ctx */) {
     capacitor: {
       hideSplashscreen: true,
     },
-
+    //BY LLILLOTOTOTE
+    sourceFiles: {
+      electronMain: 'src-electron/electron-main',
+      electronPreload: 'src-electron/electron-preload',
+    },
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
     electron: {
       // extendElectronMainConf (esbuildConf)
@@ -197,6 +205,27 @@ module.exports = configure(function (/* ctx */) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'quasar-project',
+      },
+      //BY LLILLOTOTOTE
+      unPackagedInstallParams: [],
+
+      // optional; add/remove/change properties
+      // of production generated package.json
+      extendPackageJson(pkg) {
+        // directly change props of pkg;
+        // no need to return anything
+      },
+
+      inspectPort: 5858,
+
+      extendElectronMainConf(cfg) {
+        // do something with Esbuild config
+        // for the Electron Main thread
+      },
+
+      extendElectronPreloadConf(cfg) {
+        // do something with Esbuild config
+        // for the Electron Preload thread
       },
     },
 

@@ -24,9 +24,8 @@ export interface ResponseExternal<T> {
   status: number;
   error?: string;
   message?: string;
-  payload: T | null
+  payload: T | null;
 }
-
 
 export interface Qtree<T> {
   label: string;

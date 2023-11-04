@@ -1,3 +1,3 @@
 export type Mask<Type> = {
-    [Property in keyof Type]: string;
+  [Property in keyof Type]: string;
 };
